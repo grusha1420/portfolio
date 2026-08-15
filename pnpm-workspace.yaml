@@ -1,0 +1,8 @@
+allowBuilds:
+  esbuild: true
+  msgpackr-extract: true
+  sharp: true
+  unrs-resolver: true
+confirmModulesPurge: false
+nodeLinker: hoisted
+storeDir: /tmp/pnpm-store-resurexi

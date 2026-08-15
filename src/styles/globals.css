@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* ── Design tokens (placeholder palette — YNG/Kenney inspired) ── */
+:root {
+  --background: #faf7f2;
+  --foreground: #1c1917;
+  --muted: #78716c;
+  --border: #e7e5e4;
+
+  --segment-default-bg: #faf7f2;
+  --segment-accent-a-bg: #6b4eaa;
+  --segment-accent-a-fg: #ffffff;
+  --segment-accent-b-bg: #ff5722;
+  --segment-accent-b-fg: #ffffff;
+
+  --accent: #ff5722;
+  --accent-foreground: #ffffff;
+
+  --card-bg: #ffffff;
+  --input-border: #d6d3d1;
+}
+
+.dark {
+  --background: #0c0a09;
+  --foreground: #fafaf9;
+  --muted: #a8a29e;
+  --border: #292524;
+
+  --segment-default-bg: #0c0a09;
+  --segment-accent-a-bg: #5b3d8e;
+  --segment-accent-a-fg: #ffffff;
+  --segment-accent-b-bg: #e64a19;
+  --segment-accent-b-fg: #ffffff;
+
+  --accent: #ff7043;
+  --accent-foreground: #ffffff;
+
+  --card-bg: #1c1917;
+  --input-border: #44403c;
+}
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+
+  --color-segment-default: var(--segment-default-bg);
+  --color-segment-accent-a: var(--segment-accent-a-bg);
+  --color-segment-accent-a-fg: var(--segment-accent-a-fg);
+  --color-segment-accent-b: var(--segment-accent-b-bg);
+  --color-segment-accent-b-fg: var(--segment-accent-b-fg);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-card: var(--card-bg);
+  --color-input-border: var(--input-border);
+
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  --container-content: 72rem;
+}
+
+@utility container-content {
+  width: 100%;
+  max-width: var(--container-content);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+/* ── Smooth scroll + fixed header offset for anchor sections ── */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+#hero,
+#featured-work,
+#about,
+#contact {
+  scroll-margin-top: 5rem;
+}
+
+/* ── WaveDivider (Kenney.nl-style horizontal scroll) ── */
+@keyframes wave-divider-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-1280px);
+  }
+}
+
+@keyframes wave-divider-scroll-reverse {
+  from {
+    transform: translateX(-1280px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.wave-divider-animate {
+  animation: wave-divider-scroll 8s linear infinite;
+  will-change: transform;
+}
+
+.wave-divider-animate-reverse {
+  animation: wave-divider-scroll-reverse 8s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-divider-animate,
+  .wave-divider-animate-reverse {
+    animation: none;
+    will-change: auto;
+  }
+}
