@@ -1,0 +1,1 @@
+ALTER TABLE "resurexi"."_resurexi_contact_request" ADD COLUMN "isArchived" boolean DEFAULT false NOT NULL;

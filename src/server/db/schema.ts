@@ -156,6 +156,7 @@ export const contactRequests = resurexiSchema.table("_resurexi_contact_request",
   phone: d.varchar({ length: 64 }),
   message: d.text().notNull(),
   isRead: d.boolean().notNull().default(false),
+  isArchived: d.boolean().notNull().default(false),
   createdAt: d
     .timestamp({ withTimezone: true })
     .$defaultFn(() => new Date())

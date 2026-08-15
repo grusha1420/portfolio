@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -39,17 +39,25 @@ export const contactRouter = createTRPCRouter({
       return created;
     }),
 
-  listRequests: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.db.query.contactRequests.findMany({
-      orderBy: desc(contactRequests.createdAt),
-    });
-  }),
+  listRequests: protectedProcedure
+    .input(z.object({ archived: z.boolean().default(false) }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.query.contactRequests.findMany({
+        where: eq(contactRequests.isArchived, input.archived),
+        orderBy: desc(contactRequests.createdAt),
+      });
+    }),
 
   getUnreadCount: protectedProcedure.query(async ({ ctx }) => {
     const [result] = await ctx.db
       .select({ count: sql<number>`count(*)::int` })
       .from(contactRequests)
-      .where(eq(contactRequests.isRead, false));
+      .where(
+        and(
+          eq(contactRequests.isRead, false),
+          eq(contactRequests.isArchived, false),
+        ),
+      );
 
     return result?.count ?? 0;
   }),
@@ -72,6 +80,84 @@ export const contactRouter = createTRPCRouter({
       const [updated] = await ctx.db
         .update(contactRequests)
         .set({ isRead: true })
+        .where(eq(contactRequests.id, input.id))
+        .returning();
+
+      return updated;
+    }),
+
+  archiveRequest: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.db.query.contactRequests.findFirst({
+        where: eq(contactRequests.id, input.id),
+        columns: { id: true, isArchived: true },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Contact request not found",
+        });
+      }
+
+      if (existing.isArchived) {
+        const current = await ctx.db.query.contactRequests.findFirst({
+          where: eq(contactRequests.id, input.id),
+        });
+
+        if (!current) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Contact request not found",
+          });
+        }
+
+        return current;
+      }
+
+      const [updated] = await ctx.db
+        .update(contactRequests)
+        .set({ isArchived: true, isRead: true })
+        .where(eq(contactRequests.id, input.id))
+        .returning();
+
+      return updated;
+    }),
+
+  unarchiveRequest: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.db.query.contactRequests.findFirst({
+        where: eq(contactRequests.id, input.id),
+        columns: { id: true, isArchived: true },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Contact request not found",
+        });
+      }
+
+      if (!existing.isArchived) {
+        const current = await ctx.db.query.contactRequests.findFirst({
+          where: eq(contactRequests.id, input.id),
+        });
+
+        if (!current) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Contact request not found",
+          });
+        }
+
+        return current;
+      }
+
+      const [updated] = await ctx.db
+        .update(contactRequests)
+        .set({ isArchived: false })
         .where(eq(contactRequests.id, input.id))
         .returning();
 

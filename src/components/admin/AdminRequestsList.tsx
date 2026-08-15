@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { Archive, ChevronDown, RotateCcw } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "~/components/ui/badge";
@@ -9,6 +9,12 @@ import { cn } from "~/lib/cn";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 type ContactRequest = RouterOutputs["contact"]["listRequests"][number];
+type RequestsTab = "current" | "archived";
+
+const TABS: { id: RequestsTab; label: string }[] = [
+  { id: "current", label: "Current" },
+  { id: "archived", label: "Archived" },
+];
 
 function formatRequestDate(date: Date): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -27,11 +33,25 @@ function formatFieldLabel(value: string | null | undefined, fallback = "—") {
 
 interface RequestDetailProps {
   request: ContactRequest;
+  tab: RequestsTab;
   onMarkRead: (id: string) => void;
+  onArchive: (id: string) => void;
+  onUnarchive: (id: string) => void;
   isMarking: boolean;
+  isArchiving: boolean;
+  isUnarchiving: boolean;
 }
 
-function RequestDetail({ request, onMarkRead, isMarking }: RequestDetailProps) {
+function RequestDetail({
+  request,
+  tab,
+  onMarkRead,
+  onArchive,
+  onUnarchive,
+  isMarking,
+  isArchiving,
+  isUnarchiving,
+}: RequestDetailProps) {
   return (
     <div className="flex flex-col gap-4 border-t border-border bg-foreground/[0.02] px-4 py-4 md:px-6">
       <dl className="grid gap-4 sm:grid-cols-2">
@@ -100,36 +120,71 @@ function RequestDetail({ request, onMarkRead, isMarking }: RequestDetailProps) {
         </div>
       </div>
 
-      {!request.isRead ? (
-        <div>
+      <div className="flex flex-wrap gap-2">
+        {tab === "current" ? (
+          <>
+            {!request.isRead ? (
+              <Button
+                size="sm"
+                onClick={() => onMarkRead(request.id)}
+                disabled={isMarking}
+              >
+                {isMarking ? "Marking..." : "Mark as read"}
+              </Button>
+            ) : null}
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => onArchive(request.id)}
+              disabled={isArchiving}
+            >
+              <Archive className="size-4" aria-hidden />
+              {isArchiving ? "Archiving..." : "Archive"}
+            </Button>
+          </>
+        ) : (
           <Button
             size="sm"
-            onClick={() => onMarkRead(request.id)}
-            disabled={isMarking}
+            variant="secondary"
+            onClick={() => onUnarchive(request.id)}
+            disabled={isUnarchiving}
           >
-            {isMarking ? "Marking..." : "Mark as read"}
+            <RotateCcw className="size-4" aria-hidden />
+            {isUnarchiving ? "Restoring..." : "Restore to current"}
           </Button>
-        </div>
-      ) : null}
+        )}
+      </div>
     </div>
   );
 }
 
 interface RequestRowProps {
   request: ContactRequest;
+  tab: RequestsTab;
   expanded: boolean;
   onToggle: () => void;
   onMarkRead: (id: string) => void;
+  onArchive: (id: string) => void;
+  onUnarchive: (id: string) => void;
   isMarking: boolean;
+  isArchiving: boolean;
+  isUnarchiving: boolean;
 }
 
 function RequestRow({
   request,
+  tab,
   expanded,
   onToggle,
   onMarkRead,
+  onArchive,
+  onUnarchive,
   isMarking,
+  isArchiving,
+  isUnarchiving,
 }: RequestRowProps) {
+  const showUnread = tab === "current" && !request.isRead;
+
   return (
     <div className="border-b border-border last:border-b-0">
       <button
@@ -138,11 +193,11 @@ function RequestRow({
         aria-expanded={expanded}
         className={cn(
           "grid w-full gap-3 px-4 py-4 text-left transition-colors hover:bg-foreground/[0.03] md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto_auto] md:items-center md:gap-4 md:px-6",
-          !request.isRead && "bg-accent/[0.03]",
+          showUnread && "bg-accent/[0.03]",
         )}
       >
         <div className="flex min-w-0 items-center gap-2 md:contents">
-          {!request.isRead ? (
+          {showUnread ? (
             <span
               aria-hidden
               className="size-2 shrink-0 rounded-full bg-accent md:order-first"
@@ -153,7 +208,7 @@ function RequestRow({
           <span
             className={cn(
               "min-w-0 truncate text-sm text-foreground md:order-1",
-              !request.isRead && "font-semibold",
+              showUnread && "font-semibold",
             )}
           >
             {request.name}
@@ -163,7 +218,7 @@ function RequestRow({
         <span
           className={cn(
             "min-w-0 truncate text-sm text-muted md:order-2",
-            !request.isRead && "font-medium text-foreground",
+            showUnread && "font-medium text-foreground",
           )}
         >
           <span className="md:hidden">Email: </span>
@@ -181,7 +236,9 @@ function RequestRow({
         </span>
 
         <div className="flex items-center justify-between gap-3 md:order-5 md:justify-end">
-          {request.isRead ? (
+          {tab === "archived" ? (
+            <Badge>Archived</Badge>
+          ) : request.isRead ? (
             <Badge>Read</Badge>
           ) : (
             <Badge variant="accent">Unread</Badge>
@@ -199,58 +256,47 @@ function RequestRow({
       {expanded ? (
         <RequestDetail
           request={request}
+          tab={tab}
           onMarkRead={onMarkRead}
+          onArchive={onArchive}
+          onUnarchive={onUnarchive}
           isMarking={isMarking}
+          isArchiving={isArchiving}
+          isUnarchiving={isUnarchiving}
         />
       ) : null}
     </div>
   );
 }
 
-export function AdminRequestsList() {
-  const utils = api.useUtils();
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const {
-    data: requests = [],
-    isLoading,
-    isError,
-  } = api.contact.listRequests.useQuery();
-
-  const markReadMutation = api.contact.markRequestRead.useMutation({
-    onSuccess: async () => {
-      await Promise.all([
-        utils.contact.listRequests.invalidate(),
-        utils.contact.getUnreadCount.invalidate(),
-      ]);
-    },
-  });
-
-  const handleToggle = (id: string) => {
-    setExpandedId((current) => (current === id ? null : id));
-  };
-
-  const handleMarkRead = (id: string) => {
-    markReadMutation.mutate({ id });
-  };
-
-  if (isLoading) {
-    return (
-      <p className="py-16 text-center text-sm text-muted">Loading requests…</p>
-    );
-  }
-
-  if (isError) {
-    return (
-      <p className="py-16 text-center text-sm text-muted">
-        Unable to load requests. Please try again later.
-      </p>
-    );
-  }
-
+function RequestsTable({
+  requests,
+  tab,
+  expandedId,
+  onToggle,
+  onMarkRead,
+  onArchive,
+  onUnarchive,
+  markReadMutation,
+  archiveMutation,
+  unarchiveMutation,
+}: {
+  requests: ContactRequest[];
+  tab: RequestsTab;
+  expandedId: string | null;
+  onToggle: (id: string) => void;
+  onMarkRead: (id: string) => void;
+  onArchive: (id: string) => void;
+  onUnarchive: (id: string) => void;
+  markReadMutation: ReturnType<typeof api.contact.markRequestRead.useMutation>;
+  archiveMutation: ReturnType<typeof api.contact.archiveRequest.useMutation>;
+  unarchiveMutation: ReturnType<typeof api.contact.unarchiveRequest.useMutation>;
+}) {
   if (requests.length === 0) {
     return (
-      <p className="py-16 text-center text-sm text-muted">No requests yet</p>
+      <p className="py-16 text-center text-sm text-muted">
+        {tab === "current" ? "No current requests" : "No archived requests"}
+      </p>
     );
   }
 
@@ -278,15 +324,126 @@ export function AdminRequestsList() {
         <RequestRow
           key={request.id}
           request={request}
+          tab={tab}
           expanded={expandedId === request.id}
-          onToggle={() => handleToggle(request.id)}
-          onMarkRead={handleMarkRead}
+          onToggle={() => onToggle(request.id)}
+          onMarkRead={onMarkRead}
+          onArchive={onArchive}
+          onUnarchive={onUnarchive}
           isMarking={
             markReadMutation.isPending &&
             markReadMutation.variables?.id === request.id
           }
+          isArchiving={
+            archiveMutation.isPending &&
+            archiveMutation.variables?.id === request.id
+          }
+          isUnarchiving={
+            unarchiveMutation.isPending &&
+            unarchiveMutation.variables?.id === request.id
+          }
         />
       ))}
+    </div>
+  );
+}
+
+export function AdminRequestsList() {
+  const utils = api.useUtils();
+  const [activeTab, setActiveTab] = useState<RequestsTab>("current");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const {
+    data: requests = [],
+    isLoading,
+    isError,
+  } = api.contact.listRequests.useQuery({
+    archived: activeTab === "archived",
+  });
+
+  const invalidateRequests = async () => {
+    await Promise.all([
+      utils.contact.listRequests.invalidate({ archived: false }),
+      utils.contact.listRequests.invalidate({ archived: true }),
+      utils.contact.getUnreadCount.invalidate(),
+    ]);
+  };
+
+  const markReadMutation = api.contact.markRequestRead.useMutation({
+    onSuccess: invalidateRequests,
+  });
+
+  const archiveMutation = api.contact.archiveRequest.useMutation({
+    onSuccess: async () => {
+      setExpandedId(null);
+      await invalidateRequests();
+    },
+  });
+
+  const unarchiveMutation = api.contact.unarchiveRequest.useMutation({
+    onSuccess: async () => {
+      setExpandedId(null);
+      await invalidateRequests();
+    },
+  });
+
+  const handleToggle = (id: string) => {
+    setExpandedId((current) => (current === id ? null : id));
+  };
+
+  const handleTabChange = (tab: RequestsTab) => {
+    setActiveTab(tab);
+    setExpandedId(null);
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      <nav
+        className="flex gap-1 border-b border-border"
+        aria-label="Requests tabs"
+      >
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => handleTabChange(tab.id)}
+              className={cn(
+                "-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors",
+                isActive
+                  ? "border-accent text-accent"
+                  : "border-transparent text-muted hover:text-foreground",
+              )}
+              aria-current={isActive ? "page" : undefined}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {isLoading ? (
+        <p className="py-16 text-center text-sm text-muted">Loading requests…</p>
+      ) : isError ? (
+        <p className="py-16 text-center text-sm text-muted">
+          Unable to load requests. Please try again later.
+        </p>
+      ) : (
+        <RequestsTable
+          requests={requests}
+          tab={activeTab}
+          expandedId={expandedId}
+          onToggle={handleToggle}
+          onMarkRead={(id) => markReadMutation.mutate({ id })}
+          onArchive={(id) => archiveMutation.mutate({ id })}
+          onUnarchive={(id) => unarchiveMutation.mutate({ id })}
+          markReadMutation={markReadMutation}
+          archiveMutation={archiveMutation}
+          unarchiveMutation={unarchiveMutation}
+        />
+      )}
     </div>
   );
 }
