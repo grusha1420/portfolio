@@ -78,7 +78,7 @@ export function HeroInteractive({ content, contactLinks }: HeroInteractiveProps)
         className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/20"
       />
 
-      <div className="container-content relative z-10 flex w-full flex-col pb-10 pt-28 md:pt-32">
+      <div className="container-content relative z-20 flex w-full flex-col pb-10 pt-28 md:pt-32">
         <div className="flex max-w-3xl flex-col gap-6">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/70">
             {content.overline}
@@ -121,7 +121,7 @@ export function HeroInteractive({ content, contactLinks }: HeroInteractiveProps)
           wireframeUrl={content.wireframeUrl}
           wireframeColorUrl={content.wireframeColorUrl}
           heroRef={heroRef}
-          className="pointer-events-none relative z-10 w-full select-none"
+          className="pointer-events-none relative z-0 w-full select-none"
         />
       ) : null}
     </section>
