@@ -2,7 +2,7 @@ import { AboutPreview, ContactSection, FeaturedWork, Hero } from "~/components/s
 import { getStaticPageMetadata } from "~/lib/seo";
 
 export const metadata = getStaticPageMetadata(
-  "resurexi — 3D Designer",
+  "astershape — 3D Designer",
   "/",
 );
 

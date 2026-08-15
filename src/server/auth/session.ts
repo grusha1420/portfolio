@@ -1,4 +1,4 @@
-export const SESSION_COOKIE_NAME = "resurexi_admin_session";
+export const SESSION_COOKIE_NAME = "astershape_admin_session";
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 

@@ -2,7 +2,7 @@ import { type Metadata } from "next";
 
 import { env } from "~/env";
 
-export const SITE_NAME = "resurexi";
+export const SITE_NAME = "astershape";
 export const DEFAULT_SITE_DESCRIPTION = "3D model designer portfolio";
 export const DEFAULT_OG_IMAGE = "/og-default.png";
 
@@ -232,10 +232,10 @@ export function getAboutMetadata(mainPost?: AboutSeoInput | null): Metadata {
     null;
 
   return buildMetadata({
-    title: "About — resurexi",
+    title: "About — astershape",
     description,
     path: "/about",
     ogImage,
-    ogImageAlt: mainPost?.title ?? "About resurexi",
+    ogImageAlt: mainPost?.title ?? "About astershape",
   });
 }

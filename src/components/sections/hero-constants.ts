@@ -1,6 +1,6 @@
 export const HERO_PLACEHOLDERS = {
   overline: "3D Designer",
-  title: "resurexi",
+  title: "astershape",
   subtitle:
     "Crafting immersive 3D visuals, product renders, and spatial experiences for brands worldwide.",
   gifUrl: "/placeholders/hero-bg.gif",

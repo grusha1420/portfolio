@@ -24,7 +24,7 @@ export default async function AboutPage() {
     api.blog.listPublic(),
   ]);
 
-  const pageTitle = mainPost?.title ?? "About resurexi";
+  const pageTitle = mainPost?.title ?? "About astershape";
   const hasMainContent = Boolean(mainPost?.content.trim());
 
   return (

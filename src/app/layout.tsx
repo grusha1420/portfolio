@@ -17,8 +17,8 @@ import { TRPCReactProvider } from "~/trpc/react";
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "resurexi — 3D Designer",
-    template: "%s | resurexi",
+    default: "astershape — 3D Designer",
+    template: "%s | astershape",
   },
   description: DEFAULT_SITE_DESCRIPTION,
   icons: [{ rel: "icon", url: "/favicon.ico" }],

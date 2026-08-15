@@ -1,6 +1,6 @@
-# resurexi — Portfolio
+# astershape — Portfolio
 
-Portfolio website for 3D designer Anastasia Maidannikova (resurexi). Single-page homepage with Hero, Featured Work, About, and Contact sections, plus work gallery, blog, and a password-protected admin panel for content management.
+Portfolio website for 3D designer Anastasia Maidannikova (astershape). Single-page homepage with Hero, Featured Work, About, and Contact sections, plus work gallery, blog, and a password-protected admin panel for content management.
 
 **Stack:** Next.js 15 (App Router), Tailwind CSS, tRPC, Drizzle ORM, Neon Postgres, Uploadthing, mdxEditor, Cal.com embed, next-themes.
 
@@ -73,7 +73,7 @@ Copy `.env.example` to `.env` and fill in all required values. Production builds
 3. Build command: `pnpm build` (default).
 4. Install command: `pnpm install`.
 5. Add all environment variables from the table above.
-6. For first deploy, set `NEXT_PUBLIC_SITE_URL` to your Vercel URL, e.g. `https://resurexi-portfolio.vercel.app`.
+6. For first deploy, set `NEXT_PUBLIC_SITE_URL` to your Vercel URL, e.g. `https://astershape-portfolio.vercel.app`.
 
 ### 4. Apply database schema (one-time)
 
@@ -109,7 +109,7 @@ When a custom domain is purchased:
 
 1. Add the domain in Vercel project settings → Domains.
 2. Update DNS records as instructed by Vercel.
-3. Set `NEXT_PUBLIC_SITE_URL` to the final domain (e.g. `https://resurexi.com`).
+3. Set `NEXT_PUBLIC_SITE_URL` to the final domain (e.g. `https://astershape.com`).
 4. Redeploy so sitemap, OG tags, and canonical URLs use the new domain.
 
 ## Production smoke test

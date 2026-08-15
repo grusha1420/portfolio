@@ -160,7 +160,7 @@ export function Header() {
               isOverHero ? "text-white hover:text-white/90" : "text-foreground",
             )}
           >
-            resurexi
+            astershape
           </Link>
 
           <nav

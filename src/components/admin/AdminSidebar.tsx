@@ -32,7 +32,7 @@ export function AdminSidebar({ onNavigate, className }: AdminSidebarProps) {
           className="text-lg font-semibold tracking-tight text-foreground"
           onClick={onNavigate}
         >
-          resurexi admin
+          astershape admin
         </Link>
       </div>
 

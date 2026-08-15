@@ -4,9 +4,9 @@ import { WorkGallery } from "~/components/work";
 import { getStaticPageMetadata } from "~/lib/seo";
 
 export const metadata = getStaticPageMetadata(
-  "Work — resurexi",
+  "Work — astershape",
   "/work",
-  "Portfolio gallery of 3D renders, animation, and case studies by resurexi.",
+  "Portfolio gallery of 3D renders, animation, and case studies by astershape.",
 );
 
 export default function WorkPage() {

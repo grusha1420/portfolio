@@ -1,5 +1,5 @@
 export const CONTACT_INFO_PLACEHOLDERS = {
-  contactEmail: "hello@resurexi.com",
+  contactEmail: "hello@astershape.com",
   responseTimeText: "I respond within 24 hours.",
   basedInText: "Working worldwide.",
 } as const;
