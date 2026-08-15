@@ -42,7 +42,7 @@ Open [http://localhost:3000](http://localhost:3000). Admin panel: [http://localh
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | Yes | Neon Postgres connection string |
+| `POSTGRES_URL` | Yes | Neon Postgres connection string |
 | `ADMIN_PASSWORD` | Yes | Admin login password (use 12+ strong characters) |
 | `SESSION_SECRET` | Yes | HMAC signing key for sessions (min 32 chars, separate from password) |
 | `UPLOADTHING_SECRET` | Yes | Uploadthing secret key (`sk_…`) |
@@ -77,10 +77,10 @@ Copy `.env.example` to `.env` and fill in all required values. Production builds
 
 ### 4. Apply database schema (one-time)
 
-After setting `DATABASE_URL` in Vercel, run schema push from your machine against the production database:
+After setting `POSTGRES_URL` in Vercel, run schema push from your machine against the production database:
 
 ```bash
-DATABASE_URL="postgresql://..." pnpm db:push
+POSTGRES_URL="postgresql://..." pnpm db:push
 ```
 
 No seed data is included — all content is entered through the admin panel.
@@ -131,7 +131,7 @@ After deploy and content setup, verify:
 - `SESSION_SECRET` must be separate from the admin password and at least 32 characters.
 - Admin sessions use httpOnly, secure cookies in production.
 - `/admin` is excluded from `sitemap.xml` and blocked in `robots.txt`.
-- Server secrets (`ADMIN_PASSWORD`, `SESSION_SECRET`, `UPLOADTHING_SECRET`, `DATABASE_URL`) are never exposed to the client bundle.
+- Server secrets (`ADMIN_PASSWORD`, `SESSION_SECRET`, `UPLOADTHING_SECRET`, `POSTGRES_URL`) are never exposed to the client bundle.
 
 ## Free tier notes
 

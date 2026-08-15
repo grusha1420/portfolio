@@ -6,7 +6,10 @@ export default {
   schema: "./src/server/db/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: env.DATABASE_URL,
+    url: env.POSTGRES_URL,
   },
-  tablesFilter: ["_t3tmp_*"],
+  /** Only manage objects inside the `resurexi` Postgres schema. */
+  schemaFilter: ["resurexi"],
+  /** Table name prefix within that schema. */
+  tablesFilter: ["_resurexi_*"],
 } satisfies Config;

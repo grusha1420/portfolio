@@ -7,7 +7,7 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    DATABASE_URL: z.string().url(),
+    POSTGRES_URL: z.string().url(),
     ADMIN_PASSWORD: z
       .string()
       .min(1, "ADMIN_PASSWORD is required for admin authentication"),
@@ -57,7 +57,7 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    DATABASE_URL: process.env.DATABASE_URL,
+    POSTGRES_URL: process.env.POSTGRES_URL,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
     SESSION_SECRET: process.env.SESSION_SECRET,
     NODE_ENV: process.env.NODE_ENV,

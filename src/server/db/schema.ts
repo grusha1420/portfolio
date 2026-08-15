@@ -1,30 +1,29 @@
 import { relations } from "drizzle-orm";
 import {
   index,
-  pgEnum,
-  pgTableCreator,
+  pgSchema,
   primaryKey,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
 
 /**
- * Multi-project schema prefix for Drizzle ORM.
+ * Isolated Postgres schema + table prefix for shared Neon database.
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator((name) => `_t3tmp_${name}`);
+export const resurexiSchema = pgSchema("resurexi");
 
-const cuid = () => createId();
-
-export const siteContentKeyEnum = pgEnum("site_content_key", [
+export const siteContentKeyEnum = resurexiSchema.enum("site_content_key", [
   "hero",
   "about_preview",
   "contact_info",
 ]);
 
-export const categories = createTable(
-  "category",
+const cuid = () => createId();
+
+export const categories = resurexiSchema.table(
+  "_resurexi_category",
   (d) => ({
     id: d.varchar({ length: 128 }).primaryKey().$defaultFn(cuid),
     name: d.varchar({ length: 256 }).notNull(),
@@ -37,8 +36,8 @@ export const categories = createTable(
   (t) => [uniqueIndex("category_slug_idx").on(t.slug)],
 );
 
-export const works = createTable(
-  "work",
+export const works = resurexiSchema.table(
+  "_resurexi_work",
   (d) => ({
     id: d.varchar({ length: 128 }).primaryKey().$defaultFn(cuid),
     slug: d.varchar({ length: 256 }).notNull(),
@@ -65,8 +64,8 @@ export const works = createTable(
   (t) => [uniqueIndex("work_slug_idx").on(t.slug)],
 );
 
-export const workCategories = createTable(
-  "work_category",
+export const workCategories = resurexiSchema.table(
+  "_resurexi_work_category",
   (d) => ({
     workId: d
       .varchar({ length: 128 })
@@ -80,8 +79,8 @@ export const workCategories = createTable(
   (t) => [primaryKey({ columns: [t.workId, t.categoryId] })],
 );
 
-export const workGalleryImages = createTable(
-  "work_gallery_image",
+export const workGalleryImages = resurexiSchema.table(
+  "_resurexi_work_gallery_image",
   (d) => ({
     id: d.varchar({ length: 128 }).primaryKey().$defaultFn(cuid),
     workId: d
@@ -96,8 +95,8 @@ export const workGalleryImages = createTable(
   (t) => [index("work_gallery_image_work_id_idx").on(t.workId)],
 );
 
-export const workYoutubeVideos = createTable(
-  "work_youtube_video",
+export const workYoutubeVideos = resurexiSchema.table(
+  "_resurexi_work_youtube_video",
   (d) => ({
     id: d.varchar({ length: 128 }).primaryKey().$defaultFn(cuid),
     workId: d
@@ -110,8 +109,8 @@ export const workYoutubeVideos = createTable(
   (t) => [index("work_youtube_video_work_id_idx").on(t.workId)],
 );
 
-export const blogPosts = createTable(
-  "blog_post",
+export const blogPosts = resurexiSchema.table(
+  "_resurexi_blog_post",
   (d) => ({
     id: d.varchar({ length: 128 }).primaryKey().$defaultFn(cuid),
     slug: d.varchar({ length: 256 }).notNull(),
@@ -137,7 +136,7 @@ export const blogPosts = createTable(
   (t) => [uniqueIndex("blog_post_slug_idx").on(t.slug)],
 );
 
-export const contactLinks = createTable("contact_link", (d) => ({
+export const contactLinks = resurexiSchema.table("_resurexi_contact_link", (d) => ({
   id: d.varchar({ length: 128 }).primaryKey().$defaultFn(cuid),
   label: d.varchar({ length: 256 }).notNull(),
   url: d.varchar({ length: 2048 }).notNull(),
@@ -149,7 +148,7 @@ export const contactLinks = createTable("contact_link", (d) => ({
     .notNull(),
 }));
 
-export const contactRequests = createTable("contact_request", (d) => ({
+export const contactRequests = resurexiSchema.table("_resurexi_contact_request", (d) => ({
   id: d.varchar({ length: 128 }).primaryKey().$defaultFn(cuid),
   name: d.varchar({ length: 256 }).notNull(),
   company: d.varchar({ length: 256 }),
@@ -163,8 +162,8 @@ export const contactRequests = createTable("contact_request", (d) => ({
     .notNull(),
 }));
 
-export const siteContent = createTable(
-  "site_content",
+export const siteContent = resurexiSchema.table(
+  "_resurexi_site_content",
   (d) => ({
     id: d.varchar({ length: 128 }).primaryKey().$defaultFn(cuid),
     key: siteContentKeyEnum("key").notNull(),
