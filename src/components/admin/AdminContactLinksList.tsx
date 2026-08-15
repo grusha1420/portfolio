@@ -544,17 +544,18 @@ export function AdminContactLinksList() {
   const [orderedLinks, setOrderedLinks] = useState<ContactLink[]>([]);
 
   const {
-    data: links = [],
+    data: links,
     isLoading,
     isError,
   } = api.contact.getLinks.useQuery();
 
   useEffect(() => {
+    if (links === undefined) return;
     setOrderedLinks(links);
   }, [links]);
 
   const nextOrder = useMemo(() => {
-    if (links.length === 0) {
+    if (!links || links.length === 0) {
       return 0;
     }
 
@@ -566,7 +567,9 @@ export function AdminContactLinksList() {
       await utils.contact.getLinks.invalidate();
     },
     onError: async () => {
-      setOrderedLinks(links);
+      if (links) {
+        setOrderedLinks(links);
+      }
       await utils.contact.getLinks.invalidate();
     },
   });

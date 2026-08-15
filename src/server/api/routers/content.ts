@@ -52,11 +52,13 @@ async function upsertContentByKey(
 
 export const contentRouter = createTRPCRouter({
   getHero: publicProcedure.query(async ({ ctx }) => {
-    return getContentByKey(ctx.db, "hero");
+    const content = await getContentByKey(ctx.db, "hero");
+    return content ?? null;
   }),
 
   getAboutPreview: publicProcedure.query(async ({ ctx }) => {
-    return getContentByKey(ctx.db, "about_preview");
+    const content = await getContentByKey(ctx.db, "about_preview");
+    return content ?? null;
   }),
 
   getContactInfo: publicProcedure.query(async ({ ctx }) => {

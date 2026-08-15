@@ -17,6 +17,7 @@ import {
   encodeSessionToken,
   getSessionFromHeaders,
   SESSION_COOKIE_NAME,
+  SESSION_TTL,
   type AdminSession,
 } from "~/server/auth/session";
 
@@ -36,6 +37,7 @@ export async function createSession(): Promise<void> {
     secure: env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
+    maxAge: Math.floor(SESSION_TTL / 1000),
   });
 }
 

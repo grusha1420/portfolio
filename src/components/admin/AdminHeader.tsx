@@ -2,10 +2,10 @@
 
 import { Menu } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/cn";
-import { api } from "~/trpc/react";
 
 import { getAdminPageTitle } from "./admin-nav";
 
@@ -18,13 +18,23 @@ export function AdminHeader({ onMenuClick, className }: AdminHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const pageTitle = getAdminPageTitle(pathname);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const logoutMutation = api.admin.logout.useMutation({
-    onSuccess: () => {
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await fetch("/api/admin/logout", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      window.location.assign("/admin/login");
+    } catch {
       router.push("/admin/login");
       router.refresh();
-    },
-  });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const breadcrumb =
     pathname.startsWith("/admin/work/categories") ? (
@@ -59,10 +69,10 @@ export function AdminHeader({ onMenuClick, className }: AdminHeaderProps) {
       <Button
         variant="secondary"
         size="sm"
-        onClick={() => logoutMutation.mutate()}
-        disabled={logoutMutation.isPending}
+        onClick={() => void handleLogout()}
+        disabled={isLoggingOut}
       >
-        {logoutMutation.isPending ? "Signing out..." : "Log out"}
+        {isLoggingOut ? "Signing out..." : "Log out"}
       </Button>
     </header>
   );
