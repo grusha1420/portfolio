@@ -15,13 +15,13 @@ export type ImageUploadValue = {
 };
 
 type SingleValue = string | ImageUploadValue;
-type UploadEndpoint = "imageUploader" | "heroImageUploader";
+type UploadEndpoint = "imageUploader" | "heroImageUploader" | "wireframeImageUploader";
 type UploadedFile = ClientUploadedFileData<{ url: string; name: string }>;
 
 interface ImageUploaderBaseProps {
   label?: string;
   detectAnimated?: boolean;
-  variant?: "default" | "hero";
+  variant?: "default" | "hero" | "wireframe";
   onUploadingChange?: (uploading: boolean) => void;
 }
 
@@ -175,9 +175,17 @@ export function ImageUploader(props: ImageUploaderProps) {
     handlerOptions,
   );
   const heroUpload = useImageUploadHandlers("heroImageUploader", handlerOptions);
+  const wireframeUpload = useImageUploadHandlers(
+    "wireframeImageUploader",
+    handlerOptions,
+  );
 
   const { startUpload, isUploading } =
-    variant === "hero" ? heroUpload : defaultUpload;
+    variant === "hero"
+      ? heroUpload
+      : variant === "wireframe"
+        ? wireframeUpload
+        : defaultUpload;
 
   useEffect(() => {
     onUploadingChange?.(isUploading);
@@ -230,7 +238,7 @@ export function ImageUploader(props: ImageUploaderProps) {
   };
 
   const accept =
-    variant === "hero"
+    variant === "hero" || variant === "wireframe"
       ? "image/*"
       : "image/png,image/jpeg,image/webp,image/gif,image/avif";
 
@@ -349,8 +357,10 @@ export function ImageUploader(props: ImageUploaderProps) {
                 </span>
                 <span className="text-xs text-muted">
                   {variant === "hero"
-                    ? "Up to 16MB (GIF supported)"
-                    : "Up to 4MB"}
+                    ? "Up to 32MB (GIF supported)"
+                    : variant === "wireframe"
+                      ? "Up to 8MB"
+                      : "Up to 4MB"}
                 </span>
               </>
             )}

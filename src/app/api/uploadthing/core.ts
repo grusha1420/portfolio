@@ -37,7 +37,18 @@ export const ourFileRouter = {
 
   heroImageUploader: f({
     image: {
-      maxFileSize: "16MB",
+      maxFileSize: "32MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(requireAdminSession)
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.ufsUrl, name: file.name };
+    }),
+
+  wireframeImageUploader: f({
+    image: {
+      maxFileSize: "8MB",
       maxFileCount: 1,
     },
   })

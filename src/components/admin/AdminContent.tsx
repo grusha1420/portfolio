@@ -232,6 +232,7 @@ function HeroContentForm() {
 
       <ImageUploader
         label="Wireframe (B&W)"
+        variant="wireframe"
         value={form.heroWireframeUrl}
         onChange={(value) =>
           setForm((prev) => ({
@@ -244,6 +245,7 @@ function HeroContentForm() {
 
       <ImageUploader
         label="Wireframe (color)"
+        variant="wireframe"
         value={form.heroWireframeColorUrl}
         onChange={(value) =>
           setForm((prev) => ({
