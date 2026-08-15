@@ -21,6 +21,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { label: "Home", href: "/", matchPath: "/" },
   { label: "Work", href: "/work", matchPath: "/work" },
   { label: "About", href: "/about", matchPath: "/about" },
   { label: "Contact", href: "#contact", isAnchor: true },
