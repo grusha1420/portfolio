@@ -56,7 +56,7 @@ export function HeroInteractive({ content, contactLinks }: HeroInteractiveProps)
     <section
       id="hero"
       ref={heroRef}
-      className="relative flex min-h-screen flex-col justify-end overflow-hidden"
+      className="relative flex min-h-screen flex-col justify-end"
     >
       {content.gifUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -78,7 +78,7 @@ export function HeroInteractive({ content, contactLinks }: HeroInteractiveProps)
         className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/20"
       />
 
-      <div className="container-content relative z-10 flex w-full flex-col gap-10 pb-16 pt-28 md:pb-20 md:pt-32">
+      <div className="container-content relative z-10 flex w-full flex-col pb-10 pt-28 md:pt-32">
         <div className="flex max-w-3xl flex-col gap-6">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/70">
             {content.overline}
@@ -114,16 +114,16 @@ export function HeroInteractive({ content, contactLinks }: HeroInteractiveProps)
             <BookCallButton size="lg" className="min-w-[10rem]" />
           </div>
         </div>
-
-        {showWireframe && content.wireframeUrl && content.wireframeColorUrl ? (
-          <HeroWireframe
-            wireframeUrl={content.wireframeUrl}
-            wireframeColorUrl={content.wireframeColorUrl}
-            heroRef={heroRef}
-            className="pointer-events-none select-none"
-          />
-        ) : null}
       </div>
+
+      {showWireframe && content.wireframeUrl && content.wireframeColorUrl ? (
+        <HeroWireframe
+          wireframeUrl={content.wireframeUrl}
+          wireframeColorUrl={content.wireframeColorUrl}
+          heroRef={heroRef}
+          className="pointer-events-none relative z-10 w-full select-none"
+        />
+      ) : null}
     </section>
   );
 }

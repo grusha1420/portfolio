@@ -16,6 +16,10 @@ export type WaveDividerProps = {
   backgroundColor?: string;
   /** Gentle horizontal scroll like kenney.nl (default true). */
   animated?: boolean;
+  /** When top position: overlap previous content by wave height. */
+  overlap?: boolean;
+  /** Extra overlap in px for subpixel gaps (top + overlap only). */
+  overlapExtra?: number;
   className?: string;
 };
 
@@ -26,12 +30,22 @@ function WaveTile({
   backgroundColor,
   position,
   offset,
+  overlap = false,
 }: {
   fillColor: string;
   backgroundColor: string;
   position: "top" | "bottom";
   offset: number;
+  overlap?: boolean;
 }) {
+  if (position === "top" && overlap) {
+    return (
+      <g transform={`translate(${offset}, 0)`}>
+        <path d={WAVE_BOTTOM_PATH} fill={fillColor} />
+      </g>
+    );
+  }
+
   if (position === "top") {
     return (
       <g transform={`translate(${offset}, 0)`}>
@@ -63,18 +77,33 @@ export function WaveDivider({
   fillColor,
   backgroundColor = "var(--background)",
   animated = true,
+  overlap = false,
+  overlapExtra = 0,
   className,
 }: WaveDividerProps) {
   const isTop = position === "top";
+  const useOverlapMargin = isTop && overlap;
+  const useOverlapExtra = useOverlapMargin && overlapExtra > 0;
 
   return (
     <div
       className={cn(
         "pointer-events-none relative w-full overflow-hidden leading-none",
-        "h-[clamp(3.75rem,8vw,7.5rem)]",
-        isTop ? "-mt-px" : "-mb-px",
+        "h-[var(--wave-divider-height)]",
+        isTop &&
+          (useOverlapMargin && !useOverlapExtra
+            ? "-mt-[var(--wave-divider-height)]"
+            : !useOverlapMargin && "-mt-px"),
+        !isTop && "-mb-px",
         className,
       )}
+      style={
+        useOverlapExtra
+          ? {
+              marginTop: `calc(-1 * (var(--wave-divider-height) + ${overlapExtra}px))`,
+            }
+          : undefined
+      }
       aria-hidden
     >
       <svg
@@ -97,6 +126,7 @@ export function WaveDivider({
               position={position}
               fillColor={fillColor}
               backgroundColor={backgroundColor}
+              overlap={isTop && overlap}
             />
           ))}
         </g>

@@ -141,13 +141,13 @@ export function HeroWireframe({
 
   return (
     <div className={cn("relative w-full", className)}>
-      <div className="relative aspect-[2/1] w-full max-w-5xl">
+      <div className="relative aspect-[2/1] w-full">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={wireframeUrl}
           alt=""
           aria-hidden
-          className="absolute inset-0 h-full w-full object-contain"
+          className="absolute inset-0 h-full w-full object-cover"
           draggable={false}
         />
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -155,7 +155,7 @@ export function HeroWireframe({
           src={wireframeColorUrl}
           alt=""
           aria-hidden
-          className="absolute inset-0 h-full w-full object-contain transition-opacity duration-75"
+          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-75"
           style={{ opacity: colorOpacity }}
           draggable={false}
         />

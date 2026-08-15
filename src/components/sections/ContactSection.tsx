@@ -100,7 +100,7 @@ export async function ContactSection({ variant = "home" }: ContactSectionProps) 
 
   if (variant === "home") {
     return (
-      <ColoredSegment id="contact" variant="b" waves="both">
+      <ColoredSegment id="contact" variant="b" waves="top" waveOverlap="top">
         {content}
       </ColoredSegment>
     );

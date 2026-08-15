@@ -25,7 +25,7 @@ export async function FeaturedWork() {
   const works = await api.works.listFeatured();
 
   return (
-    <ColoredSegment id="featured-work" variant="a" waves="both">
+    <ColoredSegment id="featured-work" variant="a" waves="both" waveOverlap="top">
       <div className="container-content py-16 md:py-24">
         <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-col gap-3">

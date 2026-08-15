@@ -19,6 +19,9 @@
 
   --card-bg: #ffffff;
   --input-border: #d6d3d1;
+
+  --wave-divider-height: clamp(3.75rem, 8vw, 7.5rem);
+  --hero-edge-bg: #0c0a09;
 }
 
 .dark {

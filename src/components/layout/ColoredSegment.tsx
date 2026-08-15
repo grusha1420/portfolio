@@ -11,6 +11,10 @@ export type ColoredSegmentProps = {
   children: ReactNode;
   /** Which wave dividers to render (default both). */
   waves?: "both" | "top" | "bottom" | "none";
+  /** Pull top wave up to overlap previous section (hide background gaps). */
+  waveOverlap?: "top" | "none";
+  /** Override color shown in wave cutout (defaults to tokens.adjacent). */
+  waveAdjacentColor?: string;
   animated?: boolean;
   className?: string;
   id?: string;
@@ -41,6 +45,8 @@ export function ColoredSegment({
   variant,
   children,
   waves = "both",
+  waveOverlap = "none",
+  waveAdjacentColor,
   animated = true,
   className,
   id,
@@ -48,15 +54,21 @@ export function ColoredSegment({
   const tokens = SEGMENT_TOKENS[variant];
   const showTop = waves === "both" || waves === "top";
   const showBottom = waves === "both" || waves === "bottom";
+  const hasTopOverlap = waveOverlap === "top";
+  const topAdjacentColor = waveAdjacentColor ?? tokens.adjacent;
 
   return (
     <section
       id={id}
-      className={cn("relative text-[var(--segment-fg)]", className)}
+      className={cn(
+        "relative text-[var(--segment-fg)]",
+        hasTopOverlap && "z-10",
+        className,
+      )}
       style={
         {
           "--segment-fg": tokens.fg,
-          backgroundColor: tokens.bg,
+          ...(hasTopOverlap ? {} : { backgroundColor: tokens.bg }),
         } as CSSProperties
       }
     >
@@ -64,11 +76,17 @@ export function ColoredSegment({
         <WaveDivider
           position="top"
           fillColor={tokens.bg}
-          backgroundColor={tokens.adjacent}
+          backgroundColor={topAdjacentColor}
+          overlap={hasTopOverlap}
           animated={animated}
         />
       )}
-      <div className="relative">{children}</div>
+      <div
+        className="relative"
+        style={hasTopOverlap ? { backgroundColor: tokens.bg } : undefined}
+      >
+        {children}
+      </div>
       {showBottom && (
         <WaveDivider
           position="bottom"
