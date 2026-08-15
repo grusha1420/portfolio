@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "~/components/ui/button";
+import { ThemeToggle } from "~/components/layout/theme-toggle";
 import { cn } from "~/lib/cn";
 
 import { getAdminPageTitle } from "./admin-nav";
@@ -66,14 +67,17 @@ export function AdminHeader({ onMenuClick, className }: AdminHeaderProps) {
         {breadcrumb}
       </div>
 
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => void handleLogout()}
-        disabled={isLoggingOut}
-      >
-        {isLoggingOut ? "Signing out..." : "Log out"}
-      </Button>
+      <div className="flex shrink-0 items-center gap-2">
+        <ThemeToggle />
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => void handleLogout()}
+          disabled={isLoggingOut}
+        >
+          {isLoggingOut ? "Signing out..." : "Log out"}
+        </Button>
+      </div>
     </header>
   );
 }
