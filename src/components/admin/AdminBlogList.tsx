@@ -4,6 +4,16 @@ import { Check, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import {
+  AdminTable,
+  AdminTableBody,
+  AdminTableCell,
+  AdminTableCol,
+  AdminTableColGroup,
+  AdminTableHead,
+  AdminTableHeaderCell,
+  AdminTableRow,
+} from "~/components/admin/admin-table";
 import { Button, Modal } from "~/components/ui";
 import { cn } from "~/lib/cn";
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -11,9 +21,9 @@ import { api, type RouterOutputs } from "~/trpc/react";
 type BlogPost = RouterOutputs["blog"]["listForAdmin"][number];
 
 function formatUpdatedAt(date: Date): string {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("en-UK", {
     year: "numeric",
-    month: "short",
+    month: "numeric",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
@@ -146,80 +156,75 @@ export function AdminBlogList() {
         {posts.length === 0 ? (
           <p className="py-16 text-center text-sm text-muted">No posts yet</p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <div className="hidden border-b border-border px-6 py-3 lg:grid lg:grid-cols-[minmax(0,2fr)_auto_auto_minmax(0,1fr)_auto] lg:gap-4">
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Title
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Main
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Hidden
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Updated
-              </span>
-              <span className="text-right text-xs font-medium uppercase tracking-wide text-muted">
-                Actions
-              </span>
-            </div>
-
-            {posts.map((post) => (
-              <div
-                key={post.id}
-                className="grid gap-3 border-b border-border px-4 py-4 last:border-b-0 lg:grid-cols-[minmax(0,2fr)_auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-4 lg:px-6"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {post.title}
-                  </p>
-                  {post.subtitle ? (
-                    <p className="truncate text-xs text-muted">{post.subtitle}</p>
-                  ) : null}
-                </div>
-
-                <div className="flex items-center gap-2 lg:justify-center">
-                  <span className="text-xs text-muted lg:hidden">Main</span>
-                  <StatusCheck active={post.isMain} />
-                </div>
-
-                <div className="flex items-center gap-2 lg:justify-center">
-                  <span className="text-xs text-muted lg:hidden">Hidden</span>
-                  <StatusCheck active={post.hidden} />
-                </div>
-
-                <span className="text-sm text-muted">
-                  <span className="lg:hidden">Updated: </span>
-                  {formatUpdatedAt(post.updatedAt)}
-                </span>
-
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    aria-label={`Edit ${post.title}`}
-                    onClick={() => router.push(`/admin/blog/${post.id}`)}
-                  >
-                    <Pencil className="size-4" />
-                    <span className="sr-only lg:not-sr-only">Edit</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 dark:text-red-400"
-                    aria-label={`Delete ${post.title}`}
-                    onClick={() => setDeleteModal({ open: true, post })}
-                  >
-                    <Trash2 className="size-4" />
-                    <span className="sr-only lg:not-sr-only">Delete</span>
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <AdminTable minWidth="640px">
+            <AdminTableColGroup>
+              <AdminTableCol />
+              <AdminTableCol className="w-20" />
+              <AdminTableCol className="w-20" />
+              <AdminTableCol className="w-44" />
+              <AdminTableCol className="w-40" />
+            </AdminTableColGroup>
+            <AdminTableHead>
+              <AdminTableRow>
+                <AdminTableHeaderCell>Title</AdminTableHeaderCell>
+                <AdminTableHeaderCell align="center">Main</AdminTableHeaderCell>
+                <AdminTableHeaderCell align="center">Hidden</AdminTableHeaderCell>
+                <AdminTableHeaderCell>Updated</AdminTableHeaderCell>
+                <AdminTableHeaderCell align="right">Actions</AdminTableHeaderCell>
+              </AdminTableRow>
+            </AdminTableHead>
+            <AdminTableBody>
+              {posts.map((post) => (
+                <AdminTableRow key={post.id}>
+                  <AdminTableCell>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {post.title}
+                      </p>
+                      {post.subtitle ? (
+                        <p className="truncate text-xs text-muted">{post.subtitle}</p>
+                      ) : null}
+                    </div>
+                  </AdminTableCell>
+                  <AdminTableCell align="center">
+                    <StatusCheck active={post.isMain} />
+                  </AdminTableCell>
+                  <AdminTableCell align="center">
+                    <StatusCheck active={post.hidden} />
+                  </AdminTableCell>
+                  <AdminTableCell>
+                    <span className="text-sm text-muted">
+                      {formatUpdatedAt(post.updatedAt)}
+                    </span>
+                  </AdminTableCell>
+                  <AdminTableCell align="right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Edit ${post.title}`}
+                        onClick={() => router.push(`/admin/blog/${post.id}`)}
+                        className="px-2"
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 dark:text-red-400 px-2"
+                        aria-label={`Delete ${post.title}`}
+                        onClick={() => setDeleteModal({ open: true, post })}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </AdminTableCell>
+                </AdminTableRow>
+              ))}
+            </AdminTableBody>
+          </AdminTable>
         )}
       </div>
 

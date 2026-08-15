@@ -5,6 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import {
+  AdminTable,
+  AdminTableBody,
+  AdminTableCell,
+  AdminTableCol,
+  AdminTableColGroup,
+  AdminTableHead,
+  AdminTableHeaderCell,
+  AdminTableRow,
+} from "~/components/admin/admin-table";
 import { Button, Modal } from "~/components/ui";
 import { cn } from "~/lib/cn";
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -194,98 +204,95 @@ export function AdminWorkList() {
             {works.length === 0 ? "No works yet" : "No works match this filter"}
           </p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <div className="hidden border-b border-border px-6 py-3 lg:grid lg:grid-cols-[auto_minmax(0,2fr)_auto_auto_minmax(0,1fr)_auto] lg:gap-4">
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Cover
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Title
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Featured
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Hidden
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Categories
-              </span>
-              <span className="text-right text-xs font-medium uppercase tracking-wide text-muted">
-                Actions
-              </span>
-            </div>
-
-            {filteredWorks.map((work) => (
-              <div
-                key={work.id}
-                className="grid gap-3 border-b border-border px-4 py-4 last:border-b-0 lg:grid-cols-[auto_minmax(0,2fr)_auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-4 lg:px-6"
-              >
-                <div className="size-12 overflow-hidden rounded-lg border border-border bg-background">
-                  {work.coverImageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={work.coverImageUrl}
-                      alt=""
-                      className="size-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex size-full items-center justify-center text-xs text-muted">
-                      —
+          <AdminTable minWidth="640px">
+            <AdminTableColGroup>
+              <AdminTableCol className="w-16" />
+              <AdminTableCol />
+              <AdminTableCol className="w-20" />
+              <AdminTableCol className="w-20" />
+              <AdminTableCol className="w-32" />
+              <AdminTableCol className="w-40" />
+            </AdminTableColGroup>
+            <AdminTableHead>
+              <AdminTableRow>
+                <AdminTableHeaderCell>Cover</AdminTableHeaderCell>
+                <AdminTableHeaderCell>Title</AdminTableHeaderCell>
+                <AdminTableHeaderCell align="center">Featured</AdminTableHeaderCell>
+                <AdminTableHeaderCell align="center">Hidden</AdminTableHeaderCell>
+                <AdminTableHeaderCell>Categories</AdminTableHeaderCell>
+                <AdminTableHeaderCell align="right">Actions</AdminTableHeaderCell>
+              </AdminTableRow>
+            </AdminTableHead>
+            <AdminTableBody>
+              {filteredWorks.map((work) => (
+                <AdminTableRow key={work.id}>
+                  <AdminTableCell className="w-16">
+                    <div className="size-12 overflow-hidden rounded-lg border border-border bg-background">
+                      {work.coverImageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={work.coverImageUrl}
+                          alt=""
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex size-full items-center justify-center text-xs text-muted">
+                          —
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {work.title}
-                  </p>
-                  {work.subtitle ? (
-                    <p className="truncate text-xs text-muted">{work.subtitle}</p>
-                  ) : null}
-                </div>
-
-                <div className="flex items-center gap-2 lg:justify-center">
-                  <span className="text-xs text-muted lg:hidden">Featured</span>
-                  <StatusCheck active={work.featured} />
-                </div>
-
-                <div className="flex items-center gap-2 lg:justify-center">
-                  <span className="text-xs text-muted lg:hidden">Hidden</span>
-                  <StatusCheck active={work.hidden} />
-                </div>
-
-                <span className="truncate text-sm text-muted">
-                  <span className="lg:hidden">Categories: </span>
-                  {formatCategories(work.categories)}
-                </span>
-
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    aria-label={`Edit ${work.title}`}
-                    onClick={() => router.push(`/admin/work/${work.id}`)}
-                  >
-                    <Pencil className="size-4" />
-                    <span className="sr-only lg:not-sr-only">Edit</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 dark:text-red-400"
-                    aria-label={`Delete ${work.title}`}
-                    onClick={() => setDeleteModal({ open: true, work })}
-                  >
-                    <Trash2 className="size-4" />
-                    <span className="sr-only lg:not-sr-only">Delete</span>
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+                  </AdminTableCell>
+                  <AdminTableCell>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {work.title}
+                      </p>
+                      {work.subtitle ? (
+                        <p className="truncate text-xs text-muted">
+                          {work.subtitle}
+                        </p>
+                      ) : null}
+                    </div>
+                  </AdminTableCell>
+                  <AdminTableCell align="center">
+                    <StatusCheck active={work.featured} />
+                  </AdminTableCell>
+                  <AdminTableCell align="center">
+                    <StatusCheck active={work.hidden} />
+                  </AdminTableCell>
+                  <AdminTableCell>
+                    <span className="truncate text-sm text-muted">
+                      {formatCategories(work.categories)}
+                    </span>
+                  </AdminTableCell>
+                  <AdminTableCell align="right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Edit ${work.title}`}
+                        onClick={() => router.push(`/admin/work/${work.id}`)}
+                        className="px-2"
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 dark:text-red-400 px-2"
+                        aria-label={`Delete ${work.title}`}
+                        onClick={() => setDeleteModal({ open: true, work })}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </AdminTableCell>
+                </AdminTableRow>
+              ))}
+            </AdminTableBody>
+          </AdminTable>
         )}
       </div>
 

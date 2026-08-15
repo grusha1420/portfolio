@@ -5,6 +5,16 @@ import { Pencil, Trash2 } from "lucide-react";
 import slugifyLib from "slugify";
 import { useEffect, useState } from "react";
 
+import {
+  AdminTable,
+  AdminTableBody,
+  AdminTableCell,
+  AdminTableCol,
+  AdminTableColGroup,
+  AdminTableHead,
+  AdminTableHeaderCell,
+  AdminTableRow,
+} from "~/components/admin/admin-table";
 import { Button, Input, Label, Modal } from "~/components/ui";
 import { cn } from "~/lib/cn";
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -319,70 +329,71 @@ export function AdminCategoriesList() {
         {categories.length === 0 ? (
           <p className="py-16 text-center text-sm text-muted">No categories yet</p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <div className="hidden border-b border-border px-6 py-3 md:grid md:grid-cols-[minmax(0,1.5fr)_minmax(0,1.5fr)_auto_auto] md:gap-4">
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Name
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Slug
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Works
-              </span>
-              <span className="text-right text-xs font-medium uppercase tracking-wide text-muted">
-                Actions
-              </span>
-            </div>
-
-            {categories.map((category) => (
-              <div
-                key={category.id}
-                className="grid gap-3 border-b border-border px-4 py-4 last:border-b-0 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1.5fr)_auto_auto] md:items-center md:gap-4 md:px-6"
-              >
-                <span className="min-w-0 truncate text-sm font-medium text-foreground">
-                  <span className="md:hidden text-muted">Name: </span>
-                  {category.name}
-                </span>
-                <span className="min-w-0 truncate font-mono text-sm text-muted">
-                  <span className="font-sans md:hidden">Slug: </span>
-                  {category.slug}
-                </span>
-                <span className="text-sm text-muted">
-                  <span className="md:hidden">Works: </span>
-                  {category.workCount}
-                </span>
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    aria-label={`Edit ${category.name}`}
-                    onClick={() => openEdit(category)}
-                  >
-                    <Pencil className="size-4" />
-                    <span className="sr-only md:not-sr-only">Edit</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      category.workCount > 0
-                        ? "text-muted"
-                        : "text-red-600 hover:text-red-700 dark:text-red-400",
-                    )}
-                    aria-label={`Delete ${category.name}`}
-                    onClick={() => openDelete(category)}
-                    disabled={category.workCount > 0}
-                  >
-                    <Trash2 className="size-4" />
-                    <span className="sr-only md:not-sr-only">Delete</span>
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <AdminTable minWidth="640px">
+            <AdminTableColGroup>
+              <AdminTableCol />
+              <AdminTableCol />
+              <AdminTableCol className="w-20" />
+              <AdminTableCol className="w-40" />
+            </AdminTableColGroup>
+            <AdminTableHead>
+              <AdminTableRow>
+                <AdminTableHeaderCell>Name</AdminTableHeaderCell>
+                <AdminTableHeaderCell>Slug</AdminTableHeaderCell>
+                <AdminTableHeaderCell>Works</AdminTableHeaderCell>
+                <AdminTableHeaderCell align="right">Actions</AdminTableHeaderCell>
+              </AdminTableRow>
+            </AdminTableHead>
+            <AdminTableBody>
+              {categories.map((category) => (
+                <AdminTableRow key={category.id}>
+                  <AdminTableCell>
+                    <span className="truncate text-sm font-medium text-foreground">
+                      {category.name}
+                    </span>
+                  </AdminTableCell>
+                  <AdminTableCell>
+                    <span className="truncate font-mono text-sm text-muted">
+                      {category.slug}
+                    </span>
+                  </AdminTableCell>
+                  <AdminTableCell>
+                    <span className="text-sm text-muted">{category.workCount}</span>
+                  </AdminTableCell>
+                  <AdminTableCell align="right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Edit ${category.name}`}
+                        onClick={() => openEdit(category)}
+                        className="px-2"
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          category.workCount > 0
+                            ? "text-muted"
+                            : "text-red-600 hover:text-red-700 dark:text-red-400",
+                          "px-2"
+                        )}
+                        aria-label={`Delete ${category.name}`}
+                        onClick={() => openDelete(category)}
+                        disabled={category.workCount > 0}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </AdminTableCell>
+                </AdminTableRow>
+              ))}
+            </AdminTableBody>
+          </AdminTable>
         )}
       </div>
 

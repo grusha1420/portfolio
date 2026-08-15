@@ -23,6 +23,16 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
 import { ImageUploader } from "~/components/admin/ImageUploader";
+import {
+  AdminTable,
+  AdminTableBody,
+  AdminTableCell,
+  AdminTableCol,
+  AdminTableColGroup,
+  AdminTableHead,
+  AdminTableHeaderCell,
+  AdminTableRow,
+} from "~/components/admin/admin-table";
 import { Button, Input, Label, Modal } from "~/components/ui";
 import { cn } from "~/lib/cn";
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -462,37 +472,32 @@ function SortableLinkRow({ link, onEdit, onDelete }: SortableLinkRowProps) {
   };
 
   return (
-    <div
+    <AdminTableRow
       ref={setNodeRef}
       style={style}
-      className={cn(
-        "grid gap-3 border-b border-border px-4 py-4 last:border-b-0 md:grid-cols-[auto_auto_minmax(0,1fr)_minmax(0,1.5fr)_auto] md:items-center md:gap-4 md:px-6",
-        isDragging && "relative z-10 bg-card shadow-lg",
-      )}
+      className={cn(isDragging && "relative z-10 bg-card shadow-lg")}
     >
-      <button
-        type="button"
-        className="flex size-9 cursor-grab items-center justify-center rounded-md text-muted hover:bg-muted/10 active:cursor-grabbing"
-        aria-label={`Reorder ${link.label}`}
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="size-4" />
-      </button>
+      <AdminTableCell className="w-12 px-3">
+        <button
+          type="button"
+          className="flex size-9 shrink-0 cursor-grab items-center justify-center rounded-md text-muted hover:bg-muted/10 active:cursor-grabbing"
+          aria-label={`Reorder ${link.label}`}
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="size-4" />
+        </button>
+      </AdminTableCell>
 
-      <LinkIconPreview iconUrl={link.iconUrl} label={link.label} />
+      <AdminTableCell className="w-12 px-3">
+        <LinkIconPreview iconUrl={link.iconUrl} label={link.label} />
+      </AdminTableCell>
 
-      <div className="min-w-0">
-        <span className="text-xs font-medium uppercase tracking-wide text-muted md:hidden">
-          Label
-        </span>
+      <AdminTableCell>
         <p className="truncate text-sm font-medium text-foreground">{link.label}</p>
-      </div>
+      </AdminTableCell>
 
-      <div className="min-w-0">
-        <span className="text-xs font-medium uppercase tracking-wide text-muted md:hidden">
-          URL
-        </span>
+      <AdminTableCell>
         <a
           href={link.url}
           target="_blank"
@@ -501,32 +506,33 @@ function SortableLinkRow({ link, onEdit, onDelete }: SortableLinkRowProps) {
         >
           {link.url}
         </a>
-      </div>
+      </AdminTableCell>
 
-      <div className="flex items-center justify-end gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          aria-label={`Edit ${link.label}`}
-          onClick={() => onEdit(link)}
-        >
-          <Pencil className="size-4" />
-          <span className="sr-only md:not-sr-only">Edit</span>
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="text-red-600 hover:text-red-700 dark:text-red-400"
-          aria-label={`Delete ${link.label}`}
-          onClick={() => onDelete(link)}
-        >
-          <Trash2 className="size-4" />
-          <span className="sr-only md:not-sr-only">Delete</span>
-        </Button>
-      </div>
-    </div>
+      <AdminTableCell align="right">
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label={`Edit ${link.label}`}
+            onClick={() => onEdit(link)}
+            className="px-2"
+          >
+            <Pencil className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-red-600 hover:text-red-700 dark:text-red-400 px-2"
+            aria-label={`Delete ${link.label}`}
+            onClick={() => onDelete(link)}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
+      </AdminTableCell>
+    </AdminTableRow>
   );
 }
 
@@ -656,43 +662,47 @@ export function AdminContactLinksList() {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <div className="hidden border-b border-border px-6 py-3 md:grid md:grid-cols-[auto_auto_minmax(0,1fr)_minmax(0,1.5fr)_auto] md:gap-4">
-              <span className="w-9" aria-hidden />
-              <span className="w-9 text-xs font-medium uppercase tracking-wide text-muted">
-                Icon
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                Label
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">
-                URL
-              </span>
-              <span className="text-right text-xs font-medium uppercase tracking-wide text-muted">
-                Actions
-              </span>
-            </div>
-
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={orderedLinks.map((link) => link.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {orderedLinks.map((link) => (
-                  <SortableLinkRow
-                    key={link.id}
-                    link={link}
-                    onEdit={openEdit}
-                    onDelete={openDelete}
-                  />
-                ))}
-              </SortableContext>
-            </DndContext>
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <AdminTable minWidth="640px">
+              <AdminTableColGroup>
+                <AdminTableCol className="w-12" />
+                <AdminTableCol className="w-12" />
+                <AdminTableCol className="w-40" />
+                <AdminTableCol />
+                <AdminTableCol className="w-40" />
+              </AdminTableColGroup>
+              <AdminTableHead>
+                <AdminTableRow>
+                  <AdminTableHeaderCell className="px-3">
+                    <span className="sr-only">Reorder</span>
+                  </AdminTableHeaderCell>
+                  <AdminTableHeaderCell className="px-3">Icon</AdminTableHeaderCell>
+                  <AdminTableHeaderCell>Label</AdminTableHeaderCell>
+                  <AdminTableHeaderCell>URL</AdminTableHeaderCell>
+                  <AdminTableHeaderCell align="right">Actions</AdminTableHeaderCell>
+                </AdminTableRow>
+              </AdminTableHead>
+              <AdminTableBody>
+                <SortableContext
+                  items={orderedLinks.map((link) => link.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {orderedLinks.map((link) => (
+                    <SortableLinkRow
+                      key={link.id}
+                      link={link}
+                      onEdit={openEdit}
+                      onDelete={openDelete}
+                    />
+                  ))}
+                </SortableContext>
+              </AdminTableBody>
+            </AdminTable>
+          </DndContext>
         )}
       </div>
 

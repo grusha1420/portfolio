@@ -5,6 +5,16 @@ import { useState } from "react";
 
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import {
+  AdminTable,
+  AdminTableBody,
+  AdminTableCell,
+  AdminTableCol,
+  AdminTableColGroup,
+  AdminTableHead,
+  AdminTableHeaderCell,
+  AdminTableRow,
+} from "~/components/admin/admin-table";
 import { cn } from "~/lib/cn";
 import { api, type RouterOutputs } from "~/trpc/react";
 
@@ -186,86 +196,96 @@ function RequestRow({
   const showUnread = tab === "current" && !request.isRead;
 
   return (
-    <div className="border-b border-border last:border-b-0">
-      <button
-        type="button"
+    <>
+      <AdminTableRow
         onClick={onToggle}
         aria-expanded={expanded}
         className={cn(
-          "grid w-full gap-3 px-4 py-4 text-left transition-colors hover:bg-foreground/[0.03] md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto_minmax(0,max-content)] md:items-center md:gap-4 md:px-6",
+          "cursor-pointer transition-colors hover:bg-foreground/[0.03]",
           showUnread && "bg-accent/[0.03]",
         )}
       >
-        <div className="flex min-w-0 items-center gap-2">
-          {showUnread ? (
+        <AdminTableCell>
+          <div className="flex min-w-0 items-center gap-2">
+            {showUnread ? (
+              <span
+                aria-hidden
+                className="size-2 shrink-0 rounded-full bg-accent"
+              />
+            ) : (
+              <span aria-hidden className="size-2 shrink-0 rounded-full" />
+            )}
             <span
-              aria-hidden
-              className="size-2 shrink-0 rounded-full bg-accent"
-            />
-          ) : (
-            <span aria-hidden className="size-2 shrink-0 rounded-full" />
-          )}
+              className={cn(
+                "min-w-0 truncate text-sm text-foreground",
+                showUnread && "font-semibold",
+              )}
+            >
+              {request.name}
+            </span>
+          </div>
+        </AdminTableCell>
+
+        <AdminTableCell>
           <span
             className={cn(
-              "min-w-0 truncate text-sm text-foreground",
-              showUnread && "font-semibold",
+              "block min-w-0 truncate text-sm text-muted",
+              showUnread && "font-medium text-foreground",
             )}
           >
-            {request.name}
+            {request.email}
           </span>
-        </div>
+        </AdminTableCell>
 
-        <span
-          className={cn(
-            "min-w-0 truncate text-sm text-muted",
-            showUnread && "font-medium text-foreground",
-          )}
-        >
-          <span className="md:hidden">Email: </span>
-          {request.email}
-        </span>
+        <AdminTableCell>
+          <span className="block min-w-0 truncate text-sm text-muted">
+            {formatFieldLabel(request.company)}
+          </span>
+        </AdminTableCell>
 
-        <span className="min-w-0 truncate text-sm text-muted">
-          <span className="md:hidden">Company: </span>
-          {formatFieldLabel(request.company)}
-        </span>
+        <AdminTableCell>
+          <span className="block text-sm text-muted whitespace-nowrap">
+            {formatRequestDate(request.createdAt)}
+          </span>
+        </AdminTableCell>
 
-        <span className="text-sm text-muted md:whitespace-nowrap">
-          <span className="md:hidden">Date: </span>
-          {formatRequestDate(request.createdAt)}
-        </span>
-
-        <div className="flex shrink-0 items-center justify-between gap-3 md:justify-end">
-          {tab === "archived" ? (
-            <Badge>Archived</Badge>
-          ) : request.isRead ? (
-            <Badge>Read</Badge>
-          ) : (
-            <Badge variant="accent">Unread</Badge>
-          )}
-          <ChevronDown
-            aria-hidden
-            className={cn(
-              "size-4 shrink-0 text-muted transition-transform",
-              expanded && "rotate-180",
+        <AdminTableCell align="right">
+          <div className="flex items-center justify-end gap-3">
+            {tab === "archived" ? (
+              <Badge>Archived</Badge>
+            ) : request.isRead ? (
+              <Badge>Read</Badge>
+            ) : (
+              <Badge variant="accent">Unread</Badge>
             )}
-          />
-        </div>
-      </button>
+            <ChevronDown
+              aria-hidden
+              className={cn(
+                "size-4 shrink-0 text-muted transition-transform",
+                expanded && "rotate-180",
+              )}
+            />
+          </div>
+        </AdminTableCell>
+      </AdminTableRow>
 
       {expanded ? (
-        <RequestDetail
-          request={request}
-          tab={tab}
-          onMarkRead={onMarkRead}
-          onArchive={onArchive}
-          onUnarchive={onUnarchive}
-          isMarking={isMarking}
-          isArchiving={isArchiving}
-          isUnarchiving={isUnarchiving}
-        />
+        <AdminTableRow>
+          <AdminTableCell colSpan={5} className="p-0">
+            <RequestDetail
+              request={request}
+              tab={tab}
+              onMarkRead={onMarkRead}
+              onArchive={onArchive}
+              onUnarchive={onUnarchive}
+              isMarking={isMarking}
+              isArchiving={isArchiving}
+              isUnarchiving={isUnarchiving}
+            />
+          </AdminTableCell>
+        </AdminTableRow>
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -301,50 +321,50 @@ function RequestsTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
-      <div className="hidden border-b border-border px-6 py-3 md:grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto_minmax(0,max-content)] md:gap-4">
-        <span className="pl-4 text-xs font-medium uppercase tracking-wide text-muted">
-          Name
-        </span>
-        <span className="text-xs font-medium uppercase tracking-wide text-muted">
-          Email
-        </span>
-        <span className="text-xs font-medium uppercase tracking-wide text-muted">
-          Company
-        </span>
-        <span className="text-xs font-medium uppercase tracking-wide text-muted">
-          Date
-        </span>
-        <span className="text-right text-xs font-medium uppercase tracking-wide text-muted">
-          Status
-        </span>
-      </div>
-
-      {requests.map((request) => (
-        <RequestRow
-          key={request.id}
-          request={request}
-          tab={tab}
-          expanded={expandedId === request.id}
-          onToggle={() => onToggle(request.id)}
-          onMarkRead={onMarkRead}
-          onArchive={onArchive}
-          onUnarchive={onUnarchive}
-          isMarking={
-            markReadMutation.isPending &&
-            markReadMutation.variables?.id === request.id
-          }
-          isArchiving={
-            archiveMutation.isPending &&
-            archiveMutation.variables?.id === request.id
-          }
-          isUnarchiving={
-            unarchiveMutation.isPending &&
-            unarchiveMutation.variables?.id === request.id
-          }
-        />
-      ))}
-    </div>
+    <AdminTable minWidth="640px">
+      <AdminTableColGroup>
+        <AdminTableCol className="w-40" />
+        <AdminTableCol />
+        <AdminTableCol className="w-36" />
+        <AdminTableCol className="w-44" />
+        <AdminTableCol className="w-36" />
+      </AdminTableColGroup>
+      <AdminTableHead>
+        <AdminTableRow>
+          <AdminTableHeaderCell>Name</AdminTableHeaderCell>
+          <AdminTableHeaderCell>Email</AdminTableHeaderCell>
+          <AdminTableHeaderCell>Company</AdminTableHeaderCell>
+          <AdminTableHeaderCell>Date</AdminTableHeaderCell>
+          <AdminTableHeaderCell align="right">Status</AdminTableHeaderCell>
+        </AdminTableRow>
+      </AdminTableHead>
+      <AdminTableBody>
+        {requests.map((request) => (
+          <RequestRow
+            key={request.id}
+            request={request}
+            tab={tab}
+            expanded={expandedId === request.id}
+            onToggle={() => onToggle(request.id)}
+            onMarkRead={onMarkRead}
+            onArchive={onArchive}
+            onUnarchive={onUnarchive}
+            isMarking={
+              markReadMutation.isPending &&
+              markReadMutation.variables?.id === request.id
+            }
+            isArchiving={
+              archiveMutation.isPending &&
+              archiveMutation.variables?.id === request.id
+            }
+            isUnarchiving={
+              unarchiveMutation.isPending &&
+              unarchiveMutation.variables?.id === request.id
+            }
+          />
+        ))}
+      </AdminTableBody>
+    </AdminTable>
   );
 }
 
