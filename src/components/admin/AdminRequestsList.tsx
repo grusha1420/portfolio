@@ -192,22 +192,22 @@ function RequestRow({
         onClick={onToggle}
         aria-expanded={expanded}
         className={cn(
-          "grid w-full gap-3 px-4 py-4 text-left transition-colors hover:bg-foreground/[0.03] md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto_auto] md:items-center md:gap-4 md:px-6",
+          "grid w-full gap-3 px-4 py-4 text-left transition-colors hover:bg-foreground/[0.03] md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto_minmax(0,max-content)] md:items-center md:gap-4 md:px-6",
           showUnread && "bg-accent/[0.03]",
         )}
       >
-        <div className="flex min-w-0 items-center gap-2 md:contents">
+        <div className="flex min-w-0 items-center gap-2">
           {showUnread ? (
             <span
               aria-hidden
-              className="size-2 shrink-0 rounded-full bg-accent md:order-first"
+              className="size-2 shrink-0 rounded-full bg-accent"
             />
           ) : (
-            <span aria-hidden className="size-2 shrink-0 rounded-full md:order-first" />
+            <span aria-hidden className="size-2 shrink-0 rounded-full" />
           )}
           <span
             className={cn(
-              "min-w-0 truncate text-sm text-foreground md:order-1",
+              "min-w-0 truncate text-sm text-foreground",
               showUnread && "font-semibold",
             )}
           >
@@ -217,7 +217,7 @@ function RequestRow({
 
         <span
           className={cn(
-            "min-w-0 truncate text-sm text-muted md:order-2",
+            "min-w-0 truncate text-sm text-muted",
             showUnread && "font-medium text-foreground",
           )}
         >
@@ -225,17 +225,17 @@ function RequestRow({
           {request.email}
         </span>
 
-        <span className="min-w-0 truncate text-sm text-muted md:order-3">
+        <span className="min-w-0 truncate text-sm text-muted">
           <span className="md:hidden">Company: </span>
           {formatFieldLabel(request.company)}
         </span>
 
-        <span className="text-sm text-muted md:order-4 md:whitespace-nowrap">
+        <span className="text-sm text-muted md:whitespace-nowrap">
           <span className="md:hidden">Date: </span>
           {formatRequestDate(request.createdAt)}
         </span>
 
-        <div className="flex items-center justify-between gap-3 md:order-5 md:justify-end">
+        <div className="flex shrink-0 items-center justify-between gap-3 md:justify-end">
           {tab === "archived" ? (
             <Badge>Archived</Badge>
           ) : request.isRead ? (
@@ -302,7 +302,7 @@ function RequestsTable({
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
-      <div className="hidden border-b border-border px-6 py-3 md:grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto_auto] md:gap-4">
+      <div className="hidden border-b border-border px-6 py-3 md:grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto_minmax(0,max-content)] md:gap-4">
         <span className="pl-4 text-xs font-medium uppercase tracking-wide text-muted">
           Name
         </span>
