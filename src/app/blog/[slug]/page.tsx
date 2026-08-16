@@ -63,7 +63,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </div>
       ) : null}
 
-      <article className="container-content flex flex-col gap-12 py-16 md:gap-16 md:py-24">
+      <article className="container-content flex flex-col gap-6 py-8 md:gap-8 md:py-10">
         <header className="flex max-w-3xl flex-col gap-4">
           {post.subtitle ? (
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">

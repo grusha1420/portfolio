@@ -4,12 +4,13 @@ import { TRPCClientError } from "@trpc/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import slugifyLib from "slugify";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { ImageUploader } from "~/components/admin/ImageUploader";
 import { MdxEditor } from "~/components/admin/MdxEditor";
 import { Button, Input, Label, Modal, Textarea } from "~/components/ui";
 import { cn } from "~/lib/cn";
+import { shouldHydrateLoadedRecord } from "~/lib/hydrate-record";
 import { api } from "~/trpc/react";
 
 function generateSlug(title: string): string {
@@ -48,19 +49,16 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const [showHiddenWarning, setShowHiddenWarning] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [hydratedId, setHydratedId] = useState<string | null>(null);
 
   const {
     data: post,
     isLoading,
     isError,
-  } = api.blog.getById.useQuery(
-    { id: postId! },
-    { enabled: isEdit },
-  );
+  } = api.blog.getById.useQuery({ id: postId! }, { enabled: isEdit });
 
-  useEffect(() => {
-    if (!post) return;
-
+  if (post && shouldHydrateLoadedRecord(post.id, hydratedId)) {
+    setHydratedId(post.id);
     setTitle(post.title);
     setSubtitle(post.subtitle ?? "");
     setSlug(post.slug);
@@ -72,7 +70,7 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
     setMetaTitle(post.metaTitle ?? "");
     setMetaDescription(post.metaDescription ?? "");
     setOgImageUrl(post.ogImageUrl ?? "");
-  }, [post]);
+  }
 
   const createMutation = api.blog.create.useMutation({
     onSuccess: async (created) => {
@@ -177,17 +175,17 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
 
   if (isEdit && isLoading) {
     return (
-      <p className="py-16 text-center text-sm text-muted">Loading post…</p>
+      <p className="text-muted py-16 text-center text-sm">Loading post…</p>
     );
   }
 
   if (isEdit && isError) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
-        <p className="text-sm text-muted">Unable to load this post.</p>
+        <p className="text-muted text-sm">Unable to load this post.</p>
         <Link
           href="/admin/blog"
-          className="inline-flex h-9 items-center justify-center rounded-full border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5"
+          className="border-border text-foreground hover:bg-foreground/5 inline-flex h-9 items-center justify-center rounded-full border px-4 text-sm font-medium transition-colors"
         >
           Back to Blog
         </Link>
@@ -201,7 +199,7 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Link
             href="/admin/blog"
-            className="inline-flex h-9 items-center justify-center rounded-full border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5"
+            className="border-border text-foreground hover:bg-foreground/5 inline-flex h-9 items-center justify-center rounded-full border px-4 text-sm font-medium transition-colors"
           >
             ← Back to Blog
           </Link>
@@ -220,7 +218,7 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
         </div>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">Basic</h2>
+          <h2 className="text-foreground text-base font-semibold">Basic</h2>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="flex flex-col gap-2">
@@ -251,7 +249,7 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
                 onChange={(event) => handleSlugChange(event.target.value)}
                 placeholder="post-slug"
               />
-              <p className="text-xs text-muted">
+              <p className="text-muted text-xs">
                 Auto-generated from title. Edit to customize.
               </p>
             </div>
@@ -269,7 +267,7 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">Cover</h2>
+          <h2 className="text-foreground text-base font-semibold">Cover</h2>
           <ImageUploader
             label="Cover image"
             value={coverImageUrl}
@@ -280,7 +278,7 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">Content</h2>
+          <h2 className="text-foreground text-base font-semibold">Content</h2>
           <MdxEditor
             key={postId ?? "new"}
             value={content}
@@ -289,20 +287,22 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">Publishing</h2>
+          <h2 className="text-foreground text-base font-semibold">
+            Publishing
+          </h2>
 
           <label className="flex items-start gap-3">
             <input
               type="checkbox"
               checked={isMain}
               onChange={(event) => setIsMain(event.target.checked)}
-              className="mt-1 size-4 rounded border-input-border text-accent focus:ring-accent/20"
+              className="border-input-border text-accent focus:ring-accent/20 mt-1 size-4 rounded"
             />
             <span className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-foreground">
+              <span className="text-foreground text-sm font-medium">
                 Main About page post
               </span>
-              <span className="text-xs text-muted">
+              <span className="text-muted text-xs">
                 Only one post can be main. Checking this will unmark any other
                 main post.
               </span>
@@ -314,11 +314,13 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
               type="checkbox"
               checked={hidden}
               onChange={(event) => handleHiddenChange(event.target.checked)}
-              className="mt-1 size-4 rounded border-input-border text-accent focus:ring-accent/20"
+              className="border-input-border text-accent focus:ring-accent/20 mt-1 size-4 rounded"
             />
             <span className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-foreground">Hidden</span>
-              <span className="text-xs text-muted">
+              <span className="text-foreground text-sm font-medium">
+                Hidden
+              </span>
+              <span className="text-muted text-xs">
                 Hidden posts are only accessible via direct link. Defaults to
                 hidden on create.
               </span>
@@ -334,7 +336,7 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">SEO</h2>
+          <h2 className="text-foreground text-base font-semibold">SEO</h2>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="blog-meta-title">Meta title</Label>
@@ -370,12 +372,12 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
           <p className="text-sm text-red-600 dark:text-red-400">{formError}</p>
         ) : null}
 
-        <div className="flex justify-end gap-3 border-t border-border pt-4">
+        <div className="border-border flex justify-end gap-3 border-t pt-4">
           <Link
             href="/admin/blog"
             aria-disabled={isSaving}
             className={cn(
-              "inline-flex h-11 items-center justify-center rounded-full border border-border px-6 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5",
+              "border-border text-foreground hover:bg-foreground/5 inline-flex h-11 items-center justify-center rounded-full border px-6 text-sm font-medium transition-colors",
               isSaving && "pointer-events-none opacity-50",
             )}
           >
@@ -393,9 +395,9 @@ export function AdminBlogForm({ postId }: AdminBlogFormProps) {
         title="Delete Post"
       >
         <div className="flex flex-col gap-4">
-          <p className="text-sm text-muted">
+          <p className="text-muted text-sm">
             Delete{" "}
-            <span className="font-medium text-foreground">
+            <span className="text-foreground font-medium">
               {title || "this post"}
             </span>
             ? This action cannot be undone.

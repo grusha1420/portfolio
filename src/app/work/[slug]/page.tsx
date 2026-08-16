@@ -60,7 +60,7 @@ export default async function WorkDetailPage({ params }: WorkPageProps) {
         </div>
       ) : null}
 
-      <article className="container-content flex flex-col gap-12 py-16 md:gap-16 md:py-24">
+      <article className="container-content flex flex-col gap-6 py-8 md:gap-8 md:py-10">
         <header className="flex flex-col gap-6">
           {work.subtitle ? (
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">

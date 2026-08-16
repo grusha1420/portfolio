@@ -5,7 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import slugifyLib from "slugify";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   ImageUploader,
@@ -18,6 +18,7 @@ import {
 } from "~/components/admin/SortableGalleryUploader";
 import { Button, Input, Label, Modal, Textarea } from "~/components/ui";
 import { cn } from "~/lib/cn";
+import { shouldHydrateLoadedRecord } from "~/lib/hydrate-record";
 import { api } from "~/trpc/react";
 
 function generateSlug(title: string): string {
@@ -90,6 +91,7 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
   const [coverUploading, setCoverUploading] = useState(false);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [ogUploading, setOgUploading] = useState(false);
+  const [hydratedId, setHydratedId] = useState<string | null>(null);
 
   const isUploading = coverUploading || galleryUploading || ogUploading;
 
@@ -101,9 +103,8 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
 
   const { data: categories = [] } = api.categories.listForAdmin.useQuery();
 
-  useEffect(() => {
-    if (!work) return;
-
+  if (work && shouldHydrateLoadedRecord(work.id, hydratedId)) {
+    setHydratedId(work.id);
     setTitle(work.title);
     setSubtitle(work.subtitle ?? "");
     setSlug(work.slug);
@@ -119,9 +120,7 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
     );
     setYoutubeVideos(
       work.youtubeVideos.length > 0
-        ? work.youtubeVideos.map((video) =>
-            createYoutubeEntry(video.url),
-          )
+        ? work.youtubeVideos.map((video) => createYoutubeEntry(video.url))
         : [createYoutubeEntry()],
     );
     setCategoryIds(work.categories.map((category) => category.id));
@@ -131,7 +130,7 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
     setMetaTitle(work.metaTitle ?? "");
     setMetaDescription(work.metaDescription ?? "");
     setOgImageUrl(work.ogImageUrl ?? "");
-  }, [work]);
+  }
 
   const createMutation = api.works.create.useMutation({
     onSuccess: async (created) => {
@@ -311,17 +310,17 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
 
   if (isEdit && isLoading) {
     return (
-      <p className="py-16 text-center text-sm text-muted">Loading work…</p>
+      <p className="text-muted py-16 text-center text-sm">Loading work…</p>
     );
   }
 
   if (isEdit && isError) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
-        <p className="text-sm text-muted">Unable to load this work.</p>
+        <p className="text-muted text-sm">Unable to load this work.</p>
         <Link
           href="/admin/work"
-          className="inline-flex h-9 items-center justify-center rounded-full border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5"
+          className="border-border text-foreground hover:bg-foreground/5 inline-flex h-9 items-center justify-center rounded-full border px-4 text-sm font-medium transition-colors"
         >
           Back to Works
         </Link>
@@ -335,7 +334,7 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Link
             href="/admin/work"
-            className="inline-flex h-9 items-center justify-center rounded-full border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5"
+            className="border-border text-foreground hover:bg-foreground/5 inline-flex h-9 items-center justify-center rounded-full border px-4 text-sm font-medium transition-colors"
           >
             ← Back to Works
           </Link>
@@ -354,7 +353,7 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
         </div>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">Basic</h2>
+          <h2 className="text-foreground text-base font-semibold">Basic</h2>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="flex flex-col gap-2">
@@ -385,7 +384,7 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
                 onChange={(event) => handleSlugChange(event.target.value)}
                 placeholder="work-slug"
               />
-              <p className="text-xs text-muted">
+              <p className="text-muted text-xs">
                 Auto-generated from title. Edit to customize.
               </p>
             </div>
@@ -403,7 +402,7 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">Media</h2>
+          <h2 className="text-foreground text-base font-semibold">Media</h2>
 
           <ImageUploader
             label="Cover image"
@@ -430,8 +429,13 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
 
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-semibold text-foreground">Videos</h2>
-            <Button type="button" variant="secondary" size="sm" onClick={handleAddYoutube}>
+            <h2 className="text-foreground text-base font-semibold">Videos</h2>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleAddYoutube}
+            >
               <Plus className="size-4" />
               Add video
             </Button>
@@ -440,7 +444,7 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
           <div className="flex flex-col gap-3">
             {youtubeVideos.map((entry, index) => (
               <div key={entry.id} className="flex items-start gap-3">
-                <span className="mt-2.5 w-6 shrink-0 text-sm text-muted">
+                <span className="text-muted mt-2.5 w-6 shrink-0 text-sm">
                   {index + 1}.
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -468,7 +472,7 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
                   aria-label="Remove video"
                   onClick={() => handleRemoveYoutube(entry.id)}
                   disabled={youtubeVideos.length === 1}
-                  className="mt-0.5 text-muted hover:text-red-600"
+                  className="text-muted mt-0.5 hover:text-red-600"
                 >
                   <Trash2 className="size-4" />
                 </Button>
@@ -478,12 +482,17 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">Categories</h2>
+          <h2 className="text-foreground text-base font-semibold">
+            Categories
+          </h2>
 
           {categories.length === 0 ? (
-            <p className="text-sm text-muted">
+            <p className="text-muted text-sm">
               No categories yet.{" "}
-              <Link href="/admin/work/categories" className="text-accent hover:underline">
+              <Link
+                href="/admin/work/categories"
+                className="text-accent hover:underline"
+              >
                 Create categories
               </Link>{" "}
               first.
@@ -493,7 +502,7 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
               {categories.map((category) => (
                 <label
                   key={category.id}
-                  className="flex items-center gap-3 rounded-lg border border-border px-4 py-3"
+                  className="border-border flex items-center gap-3 rounded-lg border px-4 py-3"
                 >
                   <input
                     type="checkbox"
@@ -501,9 +510,11 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
                     onChange={(event) =>
                       handleCategoryToggle(category.id, event.target.checked)
                     }
-                    className="size-4 rounded border-input-border text-accent focus:ring-accent/20"
+                    className="border-input-border text-accent focus:ring-accent/20 size-4 rounded"
                   />
-                  <span className="text-sm text-foreground">{category.name}</span>
+                  <span className="text-foreground text-sm">
+                    {category.name}
+                  </span>
                 </label>
               ))}
             </div>
@@ -511,7 +522,9 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">Description</h2>
+          <h2 className="text-foreground text-base font-semibold">
+            Description
+          </h2>
           <MdxEditor
             key={workId ?? "new"}
             value={description}
@@ -520,18 +533,22 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">Publishing</h2>
+          <h2 className="text-foreground text-base font-semibold">
+            Publishing
+          </h2>
 
           <label className="flex items-start gap-3">
             <input
               type="checkbox"
               checked={featured}
               onChange={(event) => setFeatured(event.target.checked)}
-              className="mt-1 size-4 rounded border-input-border text-accent focus:ring-accent/20"
+              className="border-input-border text-accent focus:ring-accent/20 mt-1 size-4 rounded"
             />
             <span className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-foreground">Featured</span>
-              <span className="text-xs text-muted">
+              <span className="text-foreground text-sm font-medium">
+                Featured
+              </span>
+              <span className="text-muted text-xs">
                 Featured works appear on the homepage when also published.
               </span>
             </span>
@@ -542,11 +559,13 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
               type="checkbox"
               checked={hidden}
               onChange={(event) => setHidden(event.target.checked)}
-              className="mt-1 size-4 rounded border-input-border text-accent focus:ring-accent/20"
+              className="border-input-border text-accent focus:ring-accent/20 mt-1 size-4 rounded"
             />
             <span className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-foreground">Hidden</span>
-              <span className="text-xs text-muted">
+              <span className="text-foreground text-sm font-medium">
+                Hidden
+              </span>
+              <span className="text-muted text-xs">
                 Hidden works are only accessible via direct link. Defaults to
                 hidden on create.
               </span>
@@ -555,7 +574,7 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">SEO</h2>
+          <h2 className="text-foreground text-base font-semibold">SEO</h2>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="work-meta-title">Meta title</Label>
@@ -592,12 +611,12 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
           <p className="text-sm text-red-600 dark:text-red-400">{formError}</p>
         ) : null}
 
-        <div className="flex justify-end gap-3 border-t border-border pt-4">
+        <div className="border-border flex justify-end gap-3 border-t pt-4">
           <Link
             href="/admin/work"
             aria-disabled={isSaving || isUploading}
             className={cn(
-              "inline-flex h-11 items-center justify-center rounded-full border border-border px-6 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5",
+              "border-border text-foreground hover:bg-foreground/5 inline-flex h-11 items-center justify-center rounded-full border px-6 text-sm font-medium transition-colors",
               (isSaving || isUploading) && "pointer-events-none opacity-50",
             )}
           >
@@ -621,9 +640,9 @@ export function AdminWorkForm({ workId }: AdminWorkFormProps) {
         title="Delete Work"
       >
         <div className="flex flex-col gap-4">
-          <p className="text-sm text-muted">
+          <p className="text-muted text-sm">
             Delete{" "}
-            <span className="font-medium text-foreground">
+            <span className="text-foreground font-medium">
               {title || "this work"}
             </span>
             ? This action cannot be undone.

@@ -29,7 +29,7 @@ export default async function AboutPage() {
 
   return (
     <main id="main-content" className="min-h-screen bg-background pt-16 text-foreground">
-      <div className="container-content flex flex-col gap-16 py-16 md:gap-24 md:py-24">
+      <div className="container-content flex flex-col gap-8 py-8 md:gap-12 md:py-10">
         <PageHero
           overline="— ABOUT"
           title={pageTitle}

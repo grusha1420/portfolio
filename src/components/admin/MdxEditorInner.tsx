@@ -22,7 +22,7 @@ import {
   UndoRedo,
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
-import { useRef, type ClipboardEvent } from "react";
+import { useEffect, useRef, type ClipboardEvent } from "react";
 
 import { cn } from "~/lib/cn";
 import { shouldImportClipboardAsMarkdown } from "~/lib/markdown-paste";
@@ -51,6 +51,16 @@ export function MdxEditorInner({
   className,
 }: MdxEditorInnerProps) {
   const editorRef = useRef<MDXEditorMethods>(null);
+  const isInternalChange = useRef(false);
+
+  useEffect(() => {
+    if (isInternalChange.current) {
+      isInternalChange.current = false;
+      return;
+    }
+
+    editorRef.current?.setMarkdown(value);
+  }, [value]);
 
   function handlePasteCapture(event: ClipboardEvent<HTMLDivElement>) {
     const plainText = event.clipboardData.getData("text/plain");
@@ -76,7 +86,10 @@ export function MdxEditorInner({
       <MDXEditor
         ref={editorRef}
         markdown={value}
-        onChange={(markdown) => onChange(markdown)}
+        onChange={(markdown) => {
+          isInternalChange.current = true;
+          onChange(markdown);
+        }}
         contentEditableClassName={cn(
           "prose prose-sm max-w-none dark:prose-invert min-h-[320px] px-4 py-3",
           "prose-headings:text-foreground prose-p:text-foreground/90",

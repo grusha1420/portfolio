@@ -95,6 +95,9 @@ export function MDXContent({ source, className }: MDXContentProps) {
         "prose-headings:text-foreground prose-p:text-foreground/90",
         "prose-a:text-accent prose-strong:text-foreground",
         "prose-table:text-foreground prose-th:border-border prose-td:border-border",
+        "prose-p:my-3 prose-headings:mt-6 prose-headings:mb-2",
+        "prose-ul:my-3 prose-ol:my-3 prose-li:my-0.5",
+        "prose-hr:my-6 prose-blockquote:my-4",
         className,
       )}
     >
