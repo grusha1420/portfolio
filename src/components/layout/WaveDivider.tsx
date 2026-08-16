@@ -90,11 +90,12 @@ export function WaveDivider({
       className={cn(
         "pointer-events-none relative w-full overflow-hidden leading-none",
         "h-[var(--wave-divider-height)]",
+        isTop && "-mb-1",
         isTop &&
           (useOverlapMargin && !useOverlapExtra
             ? "-mt-[var(--wave-divider-height)]"
             : !useOverlapMargin && "-mt-px"),
-        !isTop && "-mb-px",
+        !isTop && "-mb-px -mt-1",
         className,
       )}
       style={
