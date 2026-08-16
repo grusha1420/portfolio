@@ -49,14 +49,14 @@ export function WorkCard({ work, className }: WorkCardProps) {
       </div>
 
       <div className="flex flex-col gap-2">
+        <h3 className="line-clamp-2 text-xl font-bold leading-tight md:text-2xl">
+          {work.title}
+        </h3>
         {work.subtitle ? (
           <p className="text-xs font-medium uppercase tracking-[0.18em] opacity-80">
             {work.subtitle}
           </p>
         ) : null}
-        <h3 className="line-clamp-2 text-xl font-bold leading-tight md:text-2xl">
-          {work.title}
-        </h3>
         {work.categories.length > 0 ? (
           <div className="flex flex-wrap gap-2 pt-1">
             {work.categories.map((category) => (
