@@ -49,14 +49,14 @@ export function BlogPostCard({
       </div>
 
       <div className="flex flex-col gap-2">
+        <h3 className="line-clamp-2 text-xl font-bold leading-tight md:text-2xl">
+          {title}
+        </h3>
         {subtitle ? (
           <p className="text-xs font-medium uppercase tracking-[0.18em] opacity-80">
             {subtitle}
           </p>
         ) : null}
-        <h3 className="line-clamp-2 text-xl font-bold leading-tight md:text-2xl">
-          {title}
-        </h3>
       </div>
     </Link>
   );

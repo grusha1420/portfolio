@@ -7,20 +7,25 @@ import {
   headingsPlugin,
   imagePlugin,
   InsertImage,
+  InsertTable,
   linkDialogPlugin,
   linkPlugin,
   listsPlugin,
   ListsToggle,
   markdownShortcutPlugin,
   MDXEditor,
+  type MDXEditorMethods,
   quotePlugin,
+  tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
   UndoRedo,
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
+import { useRef, type ClipboardEvent } from "react";
 
 import { cn } from "~/lib/cn";
+import { shouldImportClipboardAsMarkdown } from "~/lib/markdown-paste";
 import { uploadFiles } from "~/utils/uploadthing";
 
 export interface MdxEditorInnerProps {
@@ -45,20 +50,38 @@ export function MdxEditorInner({
   onChange,
   className,
 }: MdxEditorInnerProps) {
+  const editorRef = useRef<MDXEditorMethods>(null);
+
+  function handlePasteCapture(event: ClipboardEvent<HTMLDivElement>) {
+    const plainText = event.clipboardData.getData("text/plain");
+    if (!shouldImportClipboardAsMarkdown(plainText)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    editorRef.current?.focus(() => {
+      editorRef.current?.insertMarkdown(plainText);
+    });
+  }
+
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-lg border border-input-border bg-background",
+        "border-input-border bg-background overflow-hidden rounded-lg border",
         className,
       )}
+      onPasteCapture={handlePasteCapture}
     >
       <MDXEditor
+        ref={editorRef}
         markdown={value}
         onChange={(markdown) => onChange(markdown)}
         contentEditableClassName={cn(
           "prose prose-sm max-w-none dark:prose-invert min-h-[320px] px-4 py-3",
           "prose-headings:text-foreground prose-p:text-foreground/90",
           "prose-a:text-accent prose-strong:text-foreground",
+          "prose-table:text-foreground prose-th:border-border prose-td:border-border",
         )}
         plugins={[
           headingsPlugin(),
@@ -67,6 +90,7 @@ export function MdxEditorInner({
           linkDialogPlugin(),
           quotePlugin(),
           thematicBreakPlugin(),
+          tablePlugin(),
           markdownShortcutPlugin(),
           imagePlugin({ imageUploadHandler: handleImageUpload }),
           toolbarPlugin({
@@ -79,6 +103,7 @@ export function MdxEditorInner({
                 <ListsToggle />
                 <CreateLink />
                 <InsertImage />
+                <InsertTable />
               </>
             ),
           }),
