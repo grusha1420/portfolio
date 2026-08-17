@@ -58,6 +58,7 @@ export function HeroWireframe({
   className,
 }: HeroWireframeProps) {
   const [colorOpacity, setColorOpacity] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const isTouchDevice = useIsTouchDevice();
@@ -78,8 +79,15 @@ export function HeroWireframe({
   );
 
   const updateFromScroll = useCallback(() => {
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = docHeight > 0 ? clamp(window.scrollY / docHeight, 0, 1) : 0;
+    const el = containerRef.current;
+    if (!el) return;
+
+    const viewportHeight = window.innerHeight;
+    if (viewportHeight <= 0) return;
+
+    const { top } = el.getBoundingClientRect();
+    // Element at the bottom of the viewport → 0; at the top edge → 1
+    const progress = 1 - clamp(top / viewportHeight, 0, 1);
     setColorOpacity(progress);
   }, []);
 
@@ -103,8 +111,10 @@ export function HeroWireframe({
       };
 
       window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll, { passive: true });
       return () => {
         window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
         if (rafRef.current !== null) {
           window.cancelAnimationFrame(rafRef.current);
         }
@@ -140,7 +150,7 @@ export function HeroWireframe({
   ]);
 
   return (
-    <div className={cn("relative w-full", className)}>
+    <div ref={containerRef} className={cn("relative w-full", className)}>
       <div className="relative aspect-[2/1] w-full">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
