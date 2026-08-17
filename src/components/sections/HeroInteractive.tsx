@@ -56,7 +56,7 @@ export function HeroInteractive({ content, contactLinks }: HeroInteractiveProps)
     <section
       id="hero"
       ref={heroRef}
-      className="relative flex min-h-screen flex-col justify-end"
+      className="relative flex h-svh flex-col"
     >
       {content.gifUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -78,14 +78,14 @@ export function HeroInteractive({ content, contactLinks }: HeroInteractiveProps)
         className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/20"
       />
 
-      <div className="container-content relative z-20 flex w-full flex-col pb-10 pt-28 md:pt-32">
-        <div className="flex max-w-3xl flex-col gap-6">
+      <div className="container-content relative z-20 flex w-full shrink-0 flex-col pb-6 pt-24 md:pt-28 [@media(max-height:45rem)]:pb-3 [@media(max-height:45rem)]:pt-20">
+        <div className="flex max-w-3xl flex-col gap-6 [@media(max-height:45rem)]:gap-3">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/70">
             {content.overline}
           </p>
 
-          <div className="flex flex-col gap-4">
-            <h1 className="text-4xl font-bold leading-tight text-white md:text-6xl lg:text-7xl">
+          <div className="flex flex-col gap-4 [@media(max-height:45rem)]:gap-2">
+            <h1 className="text-4xl font-bold leading-tight text-white md:text-6xl lg:text-7xl [@media(max-height:45rem)]:md:text-5xl [@media(max-height:45rem)]:lg:text-5xl">
               {content.title}
             </h1>
             <p className="max-w-2xl text-base leading-relaxed text-white/85 md:text-lg">
@@ -121,7 +121,7 @@ export function HeroInteractive({ content, contactLinks }: HeroInteractiveProps)
           wireframeUrl={content.wireframeUrl}
           wireframeColorUrl={content.wireframeColorUrl}
           heroRef={heroRef}
-          className="pointer-events-none relative z-0 w-full select-none"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-0 mx-auto w-full max-w-[var(--container-content)] select-none"
         />
       ) : null}
     </section>

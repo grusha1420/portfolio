@@ -151,25 +151,23 @@ export function HeroWireframe({
 
   return (
     <div ref={containerRef} className={cn("relative w-full", className)}>
-      <div className="relative aspect-[2/1] w-full">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={wireframeUrl}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover"
-          draggable={false}
-        />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={wireframeColorUrl}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-75"
-          style={{ opacity: colorOpacity }}
-          draggable={false}
-        />
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={wireframeUrl}
+        alt=""
+        aria-hidden
+        className="block h-auto w-full"
+        draggable={false}
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={wireframeColorUrl}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 h-full w-full transition-opacity duration-75"
+        style={{ opacity: colorOpacity }}
+        draggable={false}
+      />
     </div>
   );
 }
