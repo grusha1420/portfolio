@@ -86,7 +86,7 @@ export async function ContactSection({ variant = "home" }: ContactSectionProps) 
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
           03 — Contact
         </p>
-        <h2 className="text-3xl font-bold md:text-4xl lg:text-5xl">
+        <h2 className="text-3xl text-foreground font-bold md:text-4xl lg:text-5xl"> 
           Let&apos;s work together
         </h2>
       </header>

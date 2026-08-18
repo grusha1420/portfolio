@@ -60,7 +60,7 @@ export async function AboutPreview() {
               <h2 className="text-3xl font-bold md:text-4xl lg:text-5xl">
                 {content.title}
               </h2>
-              <p className="text-base leading-relaxed text-muted md:text-lg">
+              <p className="text-base leading-relaxed md:text-lg">
                 {content.text}
               </p>
             </div>

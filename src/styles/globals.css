@@ -10,9 +10,9 @@
 
   --segment-accent-a-fg: #ffffff;
   --segment-accent-b-fg: #ffffff;
-  --segment-default-bg: #5088C6;
-  --segment-accent-a-bg: #3B597A;
-  --segment-accent-b-bg: #624D43;
+  --segment-default-bg: #AACEF0;
+  --segment-accent-a-bg: #CAE5F8;
+  --segment-accent-b-bg: #BDBDBD;
 
   --accent: #ff5722;
   --accent-foreground: #ffffff;
@@ -32,9 +32,9 @@
 
   --segment-accent-a-fg: #ffffff;
   --segment-accent-b-fg: #ffffff;
-  --segment-default-bg: #3B597A;
-  --segment-accent-a-bg: #171D61;
-  --segment-accent-b-bg: #36231A;
+  --segment-default-bg: #3A5675;
+  --segment-accent-a-bg: #4D83BD;
+  --segment-accent-b-bg: #16161D;
 
   --accent: #ff7043;
   --accent-foreground: #ffffff;
