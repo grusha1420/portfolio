@@ -46,12 +46,10 @@ export async function AboutPreview() {
         <div
           className={cn(
             "grid gap-10 md:gap-16",
-            hasImage
-              ? "md:grid-cols-2 md:items-center"
-              : "mx-auto max-w-3xl",
+            hasImage && "md:grid-cols-2 md:items-center",
           )}
         >
-          <div className="flex flex-col gap-6">
+          <div className="flex max-w-3xl flex-col gap-6">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
               02 — About
             </p>
