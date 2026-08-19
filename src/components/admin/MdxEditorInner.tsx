@@ -92,7 +92,7 @@ export function MdxEditorInner({
         }}
         contentEditableClassName={cn(
           "prose prose-sm max-w-none dark:prose-invert min-h-[320px] px-4 py-3",
-          "prose-headings:text-foreground prose-p:text-foreground/90",
+          "prose-headings:text-foreground prose-p:text-foreground/90 prose-li:text-foreground/90",
           "prose-a:text-accent prose-strong:text-foreground",
           "prose-table:text-foreground prose-th:border-border prose-td:border-border",
         )}
