@@ -1,8 +1,25 @@
 "use client";
 
-import { Check, Pencil, Trash2 } from "lucide-react";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  type DragEndEvent,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Check, GripVertical, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   AdminTable,
@@ -102,6 +119,93 @@ function DeleteConfirmModal({ open, post, onClose }: DeleteConfirmModalProps) {
   );
 }
 
+interface SortablePostRowProps {
+  post: BlogPost;
+  onEdit: (post: BlogPost) => void;
+  onDelete: (post: BlogPost) => void;
+}
+
+function SortablePostRow({ post, onEdit, onDelete }: SortablePostRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: post.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <AdminTableRow
+      ref={setNodeRef}
+      style={style}
+      className={cn(isDragging && "relative z-10 bg-card shadow-lg")}
+    >
+      <AdminTableCell className="w-12 px-3">
+        <button
+          type="button"
+          className="flex size-9 shrink-0 cursor-grab items-center justify-center rounded-md text-muted hover:bg-muted/10 active:cursor-grabbing"
+          aria-label={`Reorder ${post.title}`}
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="size-4" />
+        </button>
+      </AdminTableCell>
+      <AdminTableCell>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-foreground">
+            {post.title}
+          </p>
+          {post.subtitle ? (
+            <p className="truncate text-xs text-muted">{post.subtitle}</p>
+          ) : null}
+        </div>
+      </AdminTableCell>
+      <AdminTableCell align="center">
+        <StatusCheck active={post.isMain} />
+      </AdminTableCell>
+      <AdminTableCell align="center">
+        <StatusCheck active={post.hidden} />
+      </AdminTableCell>
+      <AdminTableCell>
+        <span className="text-sm text-muted">
+          {formatUpdatedAt(post.updatedAt)}
+        </span>
+      </AdminTableCell>
+      <AdminTableCell align="right">
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label={`Edit ${post.title}`}
+            onClick={() => onEdit(post)}
+            className="px-2"
+          >
+            <Pencil className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-red-600 hover:text-red-700 dark:text-red-400 px-2"
+            aria-label={`Delete ${post.title}`}
+            onClick={() => onDelete(post)}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
+      </AdminTableCell>
+    </AdminTableRow>
+  );
+}
+
 function StatusCheck({ active }: { active: boolean }) {
   return (
     <span
@@ -121,16 +225,72 @@ function StatusCheck({ active }: { active: boolean }) {
 
 export function AdminBlogList() {
   const router = useRouter();
+  const utils = api.useUtils();
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean;
     post: BlogPost | null;
   }>({ open: false, post: null });
+  const [orderedPosts, setOrderedPosts] = useState<BlogPost[]>([]);
 
   const {
-    data: posts = [],
+    data: posts,
     isLoading,
     isError,
   } = api.blog.listForAdmin.useQuery();
+
+  useEffect(() => {
+    if (posts === undefined) return;
+    setOrderedPosts(posts);
+  }, [posts]);
+
+  const reorderMutation = api.blog.reorder.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        utils.blog.listForAdmin.invalidate(),
+        utils.blog.listPublic.invalidate(),
+      ]);
+    },
+    onError: async () => {
+      if (posts) {
+        setOrderedPosts(posts);
+      }
+      await utils.blog.listForAdmin.invalidate();
+    },
+  });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = orderedPosts.findIndex((post) => post.id === active.id);
+    const newIndex = orderedPosts.findIndex((post) => post.id === over.id);
+
+    if (oldIndex < 0 || newIndex < 0) {
+      return;
+    }
+
+    const reordered = arrayMove(orderedPosts, oldIndex, newIndex);
+    setOrderedPosts(reordered);
+
+    reorderMutation.mutate({
+      items: reordered.map((post, index) => ({
+        id: post.id,
+        order: index,
+      })),
+    });
+  };
 
   if (isLoading) {
     return (
@@ -149,82 +309,67 @@ export function AdminBlogList() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex justify-end">
-          <Button onClick={() => router.push("/admin/blog/new")}>New Post</Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted">
+            Drag rows to reorder. Order is reflected on the public site
+            immediately. New posts appear at the bottom.
+          </p>
+          <Button
+            onClick={() => router.push("/admin/blog/new")}
+            className="shrink-0"
+          >
+            New Post
+          </Button>
         </div>
 
-        {posts.length === 0 ? (
+        {orderedPosts.length === 0 ? (
           <p className="py-16 text-center text-sm text-muted">No posts yet</p>
         ) : (
-          <AdminTable minWidth="640px">
-            <AdminTableColGroup>
-              <AdminTableCol />
-              <AdminTableCol className="w-20" />
-              <AdminTableCol className="w-20" />
-              <AdminTableCol className="w-44" />
-              <AdminTableCol className="w-40" />
-            </AdminTableColGroup>
-            <AdminTableHead>
-              <AdminTableRow>
-                <AdminTableHeaderCell>Title</AdminTableHeaderCell>
-                <AdminTableHeaderCell align="center">Main</AdminTableHeaderCell>
-                <AdminTableHeaderCell align="center">Hidden</AdminTableHeaderCell>
-                <AdminTableHeaderCell>Updated</AdminTableHeaderCell>
-                <AdminTableHeaderCell align="right">Actions</AdminTableHeaderCell>
-              </AdminTableRow>
-            </AdminTableHead>
-            <AdminTableBody>
-              {posts.map((post) => (
-                <AdminTableRow key={post.id}>
-                  <AdminTableCell>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-foreground">
-                        {post.title}
-                      </p>
-                      {post.subtitle ? (
-                        <p className="truncate text-xs text-muted">{post.subtitle}</p>
-                      ) : null}
-                    </div>
-                  </AdminTableCell>
-                  <AdminTableCell align="center">
-                    <StatusCheck active={post.isMain} />
-                  </AdminTableCell>
-                  <AdminTableCell align="center">
-                    <StatusCheck active={post.hidden} />
-                  </AdminTableCell>
-                  <AdminTableCell>
-                    <span className="text-sm text-muted">
-                      {formatUpdatedAt(post.updatedAt)}
-                    </span>
-                  </AdminTableCell>
-                  <AdminTableCell align="right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        aria-label={`Edit ${post.title}`}
-                        onClick={() => router.push(`/admin/blog/${post.id}`)}
-                        className="px-2"
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700 dark:text-red-400 px-2"
-                        aria-label={`Delete ${post.title}`}
-                        onClick={() => setDeleteModal({ open: true, post })}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </div>
-                  </AdminTableCell>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <AdminTable minWidth="720px">
+              <AdminTableColGroup>
+                <AdminTableCol className="w-12" />
+                <AdminTableCol />
+                <AdminTableCol className="w-20" />
+                <AdminTableCol className="w-20" />
+                <AdminTableCol className="w-44" />
+                <AdminTableCol className="w-40" />
+              </AdminTableColGroup>
+              <AdminTableHead>
+                <AdminTableRow>
+                  <AdminTableHeaderCell className="px-3">
+                    <span className="sr-only">Reorder</span>
+                  </AdminTableHeaderCell>
+                  <AdminTableHeaderCell>Title</AdminTableHeaderCell>
+                  <AdminTableHeaderCell align="center">Main</AdminTableHeaderCell>
+                  <AdminTableHeaderCell align="center">Hidden</AdminTableHeaderCell>
+                  <AdminTableHeaderCell>Updated</AdminTableHeaderCell>
+                  <AdminTableHeaderCell align="right">Actions</AdminTableHeaderCell>
                 </AdminTableRow>
-              ))}
-            </AdminTableBody>
-          </AdminTable>
+              </AdminTableHead>
+              <AdminTableBody>
+                <SortableContext
+                  items={orderedPosts.map((post) => post.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {orderedPosts.map((post) => (
+                    <SortablePostRow
+                      key={post.id}
+                      post={post}
+                      onEdit={(item) => router.push(`/admin/blog/${item.id}`)}
+                      onDelete={(item) =>
+                        setDeleteModal({ open: true, post: item })
+                      }
+                    />
+                  ))}
+                </SortableContext>
+              </AdminTableBody>
+            </AdminTable>
+          </DndContext>
         )}
       </div>
 

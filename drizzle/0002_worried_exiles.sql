@@ -1,0 +1,2 @@
+ALTER TABLE "resurexi"."_resurexi_blog_post" ADD COLUMN "order" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "resurexi"."_resurexi_work" ADD COLUMN "order" integer DEFAULT 0 NOT NULL;

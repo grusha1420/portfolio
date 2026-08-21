@@ -92,7 +92,7 @@ export const contactLinkUpdateSchema = z.object({
   order: z.number().int().min(0).optional(),
 });
 
-export const reorderLinksSchema = z.object({
+export const reorderItemsSchema = z.object({
   items: z.array(
     z.object({
       id: z.string(),
@@ -100,6 +100,8 @@ export const reorderLinksSchema = z.object({
     }),
   ),
 });
+
+export const reorderLinksSchema = reorderItemsSchema;
 
 export const heroUpdateSchema = z.object({
   heroTitle: z.string().max(512).nullish(),

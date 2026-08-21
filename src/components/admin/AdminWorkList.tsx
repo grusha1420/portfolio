@@ -1,9 +1,26 @@
 "use client";
 
-import { Check, Pencil, Trash2 } from "lucide-react";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  type DragEndEvent,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Check, GripVertical, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   AdminTable,
@@ -96,6 +113,109 @@ function DeleteConfirmModal({ open, work, onClose }: DeleteConfirmModalProps) {
   );
 }
 
+interface SortableWorkRowProps {
+  work: Work;
+  onEdit: (work: Work) => void;
+  onDelete: (work: Work) => void;
+}
+
+function SortableWorkRow({ work, onEdit, onDelete }: SortableWorkRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: work.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <AdminTableRow
+      ref={setNodeRef}
+      style={style}
+      className={cn(isDragging && "relative z-10 bg-card shadow-lg")}
+    >
+      <AdminTableCell className="w-12 px-3">
+        <button
+          type="button"
+          className="flex size-9 shrink-0 cursor-grab items-center justify-center rounded-md text-muted hover:bg-muted/10 active:cursor-grabbing"
+          aria-label={`Reorder ${work.title}`}
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="size-4" />
+        </button>
+      </AdminTableCell>
+      <AdminTableCell className="w-16">
+        <div className="size-12 overflow-hidden rounded-lg border border-border bg-background">
+          {work.coverImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={work.coverImageUrl}
+              alt=""
+              className="size-full object-cover"
+            />
+          ) : (
+            <div className="flex size-full items-center justify-center text-xs text-muted">
+              —
+            </div>
+          )}
+        </div>
+      </AdminTableCell>
+      <AdminTableCell>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-foreground">
+            {work.title}
+          </p>
+          {work.subtitle ? (
+            <p className="truncate text-xs text-muted">{work.subtitle}</p>
+          ) : null}
+        </div>
+      </AdminTableCell>
+      <AdminTableCell align="center">
+        <StatusCheck active={work.featured} />
+      </AdminTableCell>
+      <AdminTableCell align="center">
+        <StatusCheck active={work.hidden} />
+      </AdminTableCell>
+      <AdminTableCell>
+        <span className="truncate text-sm text-muted">
+          {formatCategories(work.categories)}
+        </span>
+      </AdminTableCell>
+      <AdminTableCell align="right">
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label={`Edit ${work.title}`}
+            onClick={() => onEdit(work)}
+            className="px-2"
+          >
+            <Pencil className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-red-600 hover:text-red-700 dark:text-red-400 px-2"
+            aria-label={`Delete ${work.title}`}
+            onClick={() => onDelete(work)}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
+      </AdminTableCell>
+    </AdminTableRow>
+  );
+}
+
 function StatusCheck({ active }: { active: boolean }) {
   return (
     <span
@@ -121,29 +241,102 @@ const FILTER_OPTIONS: { value: WorkFilter; label: string }[] = [
 
 export function AdminWorkList() {
   const router = useRouter();
+  const utils = api.useUtils();
   const [filter, setFilter] = useState<WorkFilter>("all");
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean;
     work: Work | null;
   }>({ open: false, work: null });
+  const [orderedWorks, setOrderedWorks] = useState<Work[]>([]);
 
   const {
-    data: works = [],
+    data: works,
     isLoading,
     isError,
   } = api.works.listForAdmin.useQuery();
 
+  useEffect(() => {
+    if (works === undefined) return;
+    setOrderedWorks(works);
+  }, [works]);
+
   const filteredWorks = useMemo(() => {
     if (filter === "hidden") {
-      return works.filter((work) => work.hidden);
+      return orderedWorks.filter((work) => work.hidden);
     }
 
     if (filter === "published") {
-      return works.filter((work) => !work.hidden);
+      return orderedWorks.filter((work) => !work.hidden);
     }
 
-    return works;
-  }, [filter, works]);
+    return orderedWorks;
+  }, [filter, orderedWorks]);
+
+  const reorderMutation = api.works.reorder.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        utils.works.listForAdmin.invalidate(),
+        utils.works.listAll.invalidate(),
+        utils.works.listFeatured.invalidate(),
+        utils.works.listPublic.invalidate(),
+      ]);
+    },
+    onError: async () => {
+      if (works) {
+        setOrderedWorks(works);
+      }
+      await utils.works.listForAdmin.invalidate();
+    },
+  });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = filteredWorks.findIndex((work) => work.id === active.id);
+    const newIndex = filteredWorks.findIndex((work) => work.id === over.id);
+
+    if (oldIndex < 0 || newIndex < 0) {
+      return;
+    }
+
+    const reorderedVisible = arrayMove(filteredWorks, oldIndex, newIndex);
+    const visibleIds = new Set(filteredWorks.map((work) => work.id));
+    let nextVisibleIndex = 0;
+    const nextFull = orderedWorks.map((work) => {
+      if (!visibleIds.has(work.id)) {
+        return work;
+      }
+
+      const replacement = reorderedVisible[nextVisibleIndex];
+      nextVisibleIndex += 1;
+      return replacement ?? work;
+    });
+    const withOrder = nextFull.map((work, index) => ({
+      ...work,
+      order: index,
+    }));
+
+    setOrderedWorks(withOrder);
+    reorderMutation.mutate({
+      items: withOrder.map((work) => ({
+        id: work.id,
+        order: work.order,
+      })),
+    });
+  };
 
   if (isLoading) {
     return (
@@ -163,12 +356,18 @@ export function AdminWorkList() {
     <>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Link
-            href="/admin/work/categories"
-            className="text-sm font-medium text-accent hover:underline"
-          >
-            Manage Categories →
-          </Link>
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/admin/work/categories"
+              className="text-sm font-medium text-accent hover:underline"
+            >
+              Manage Categories →
+            </Link>
+            <p className="text-sm text-muted">
+              Drag rows to reorder. Order is reflected on the public site
+              immediately. With a filter, only visible items swap places.
+            </p>
+          </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <div
@@ -201,98 +400,58 @@ export function AdminWorkList() {
 
         {filteredWorks.length === 0 ? (
           <p className="py-16 text-center text-sm text-muted">
-            {works.length === 0 ? "No works yet" : "No works match this filter"}
+            {(works?.length ?? 0) === 0
+              ? "No works yet"
+              : "No works match this filter"}
           </p>
         ) : (
-          <AdminTable minWidth="640px">
-            <AdminTableColGroup>
-              <AdminTableCol className="w-16" />
-              <AdminTableCol />
-              <AdminTableCol className="w-20" />
-              <AdminTableCol className="w-20" />
-              <AdminTableCol className="w-32" />
-              <AdminTableCol className="w-40" />
-            </AdminTableColGroup>
-            <AdminTableHead>
-              <AdminTableRow>
-                <AdminTableHeaderCell>Cover</AdminTableHeaderCell>
-                <AdminTableHeaderCell>Title</AdminTableHeaderCell>
-                <AdminTableHeaderCell align="center">Featured</AdminTableHeaderCell>
-                <AdminTableHeaderCell align="center">Hidden</AdminTableHeaderCell>
-                <AdminTableHeaderCell>Categories</AdminTableHeaderCell>
-                <AdminTableHeaderCell align="right">Actions</AdminTableHeaderCell>
-              </AdminTableRow>
-            </AdminTableHead>
-            <AdminTableBody>
-              {filteredWorks.map((work) => (
-                <AdminTableRow key={work.id}>
-                  <AdminTableCell className="w-16">
-                    <div className="size-12 overflow-hidden rounded-lg border border-border bg-background">
-                      {work.coverImageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={work.coverImageUrl}
-                          alt=""
-                          className="size-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex size-full items-center justify-center text-xs text-muted">
-                          —
-                        </div>
-                      )}
-                    </div>
-                  </AdminTableCell>
-                  <AdminTableCell>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-foreground">
-                        {work.title}
-                      </p>
-                      {work.subtitle ? (
-                        <p className="truncate text-xs text-muted">
-                          {work.subtitle}
-                        </p>
-                      ) : null}
-                    </div>
-                  </AdminTableCell>
-                  <AdminTableCell align="center">
-                    <StatusCheck active={work.featured} />
-                  </AdminTableCell>
-                  <AdminTableCell align="center">
-                    <StatusCheck active={work.hidden} />
-                  </AdminTableCell>
-                  <AdminTableCell>
-                    <span className="truncate text-sm text-muted">
-                      {formatCategories(work.categories)}
-                    </span>
-                  </AdminTableCell>
-                  <AdminTableCell align="right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        aria-label={`Edit ${work.title}`}
-                        onClick={() => router.push(`/admin/work/${work.id}`)}
-                        className="px-2"
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700 dark:text-red-400 px-2"
-                        aria-label={`Delete ${work.title}`}
-                        onClick={() => setDeleteModal({ open: true, work })}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </div>
-                  </AdminTableCell>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <AdminTable minWidth="720px">
+              <AdminTableColGroup>
+                <AdminTableCol className="w-12" />
+                <AdminTableCol className="w-16" />
+                <AdminTableCol />
+                <AdminTableCol className="w-20" />
+                <AdminTableCol className="w-20" />
+                <AdminTableCol className="w-32" />
+                <AdminTableCol className="w-40" />
+              </AdminTableColGroup>
+              <AdminTableHead>
+                <AdminTableRow>
+                  <AdminTableHeaderCell className="px-3">
+                    <span className="sr-only">Reorder</span>
+                  </AdminTableHeaderCell>
+                  <AdminTableHeaderCell>Cover</AdminTableHeaderCell>
+                  <AdminTableHeaderCell>Title</AdminTableHeaderCell>
+                  <AdminTableHeaderCell align="center">Featured</AdminTableHeaderCell>
+                  <AdminTableHeaderCell align="center">Hidden</AdminTableHeaderCell>
+                  <AdminTableHeaderCell>Categories</AdminTableHeaderCell>
+                  <AdminTableHeaderCell align="right">Actions</AdminTableHeaderCell>
                 </AdminTableRow>
-              ))}
-            </AdminTableBody>
-          </AdminTable>
+              </AdminTableHead>
+              <AdminTableBody>
+                <SortableContext
+                  items={filteredWorks.map((work) => work.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {filteredWorks.map((work) => (
+                    <SortableWorkRow
+                      key={work.id}
+                      work={work}
+                      onEdit={(item) => router.push(`/admin/work/${item.id}`)}
+                      onDelete={(item) =>
+                        setDeleteModal({ open: true, work: item })
+                      }
+                    />
+                  ))}
+                </SortableContext>
+              </AdminTableBody>
+            </AdminTable>
+          </DndContext>
         )}
       </div>
 

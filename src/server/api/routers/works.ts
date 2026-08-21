@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, max } from "drizzle-orm";
 import { z } from "zod";
 
 import { ensureUniqueSlug, slugify } from "~/lib/slug";
@@ -10,6 +10,7 @@ import {
 } from "~/server/api/trpc";
 import type { galleryImageInputSchema, youtubeVideoInputSchema } from "~/server/api/schemas";
 import {
+  reorderItemsSchema,
   workCreateSchema,
   workUpdateSchema,
 } from "~/server/api/schemas";
@@ -138,7 +139,7 @@ export const worksRouter = createTRPCRouter({
             : undefined,
         ),
         with: workWithRelations,
-        orderBy: desc(works.createdAt),
+        orderBy: [asc(works.order), desc(works.createdAt)],
       });
 
       return rows.map(mapWork);
@@ -148,7 +149,7 @@ export const worksRouter = createTRPCRouter({
     const rows = await ctx.db.query.works.findMany({
       where: and(eq(works.featured, true), eq(works.hidden, false)),
       with: workWithRelations,
-      orderBy: desc(works.createdAt),
+      orderBy: [asc(works.order), desc(works.createdAt)],
     });
 
     return rows.map(mapWork);
@@ -158,7 +159,7 @@ export const worksRouter = createTRPCRouter({
     const rows = await ctx.db.query.works.findMany({
       where: eq(works.hidden, false),
       with: workWithRelations,
-      orderBy: desc(works.createdAt),
+      orderBy: [asc(works.order), desc(works.createdAt)],
     });
 
     return rows.map(mapWork);
@@ -185,7 +186,7 @@ export const worksRouter = createTRPCRouter({
   listForAdmin: protectedProcedure.query(async ({ ctx }) => {
     const rows = await ctx.db.query.works.findMany({
       with: workWithRelations,
-      orderBy: desc(works.createdAt),
+      orderBy: [asc(works.order), desc(works.createdAt)],
     });
 
     return rows.map(mapWork);
@@ -227,6 +228,10 @@ export const worksRouter = createTRPCRouter({
         }
       }
 
+      const [maxOrderRow] = await ctx.db
+        .select({ value: max(works.order) })
+        .from(works);
+
       const [created] = await ctx.db
         .insert(works)
         .values({
@@ -238,6 +243,7 @@ export const worksRouter = createTRPCRouter({
           coverIsAnimated: input.coverIsAnimated,
           featured: input.featured,
           hidden: input.hidden,
+          order: (maxOrderRow?.value ?? -1) + 1,
           metaTitle: input.metaTitle,
           metaDescription: input.metaDescription,
           ogImageUrl: input.ogImageUrl,
@@ -385,6 +391,21 @@ export const worksRouter = createTRPCRouter({
       }
 
       await ctx.db.delete(works).where(eq(works.id, input.id));
+
+      return { success: true };
+    }),
+
+  reorder: protectedProcedure
+    .input(reorderItemsSchema)
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.transaction(async (tx) => {
+        for (const item of input.items) {
+          await tx
+            .update(works)
+            .set({ order: item.order })
+            .where(eq(works.id, item.id));
+        }
+      });
 
       return { success: true };
     }),
